@@ -57,6 +57,7 @@ def needed_parameters_for_creation(
         if (
             value.kind == inspect.Parameter.VAR_POSITIONAL
             or value.kind == inspect.Parameter.VAR_KEYWORD
+            or param == "self"
         ):
             continue
         param_type = get_values_from_matching_patterns(regex_config, f"{param}_type")
