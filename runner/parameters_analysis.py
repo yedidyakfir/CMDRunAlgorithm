@@ -78,7 +78,7 @@ def needed_parameters_for_creation(
                 logger,
             )
             parameters[param] = ParameterCLI(param_type, None, klass_parameters)
-        if value.default == inspect.Parameter.empty:
+        elif value.default == inspect.Parameter.empty:
             parameters[param] = ParameterCLI(value.annotation, None, {})
         else:
             parameters[param] = ParameterCLI(type(value.default), value.default, {})
