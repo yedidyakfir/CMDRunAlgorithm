@@ -1,20 +1,26 @@
 import inspect
+from unittest.mock import MagicMock
 
 import pytest
 from torch.optim import Adam
 
-from runner.parameters_analysis import need_params_for_signature, get_full_signature_parameters
+from runner.parameters_analysis import (
+    need_params_for_signature,
+    get_full_signature_parameters,
+    needed_parameters_for_creation,
+)
 
 
 class MockA:
-    pass
+    def __init__(self, a: int, aa: str):
+        pass
 
 
 class MockB:
     def __init__(self, a: int, b: str):
         pass
 
-    def func_name(self, a: int, b: str):
+    def func_name(self, e: int, f: str):
         pass
 
 
@@ -22,7 +28,7 @@ class MockC(MockB):
     def __init__(self, a: int, b: str, c: float):
         pass
 
-    def func_name(self, a: int, b: str, c: float, *args, **kwargs):
+    def func_name(self, a: int, b: MockA, c: float = 0.2, *args, **kwargs):
         pass
 
 
@@ -72,6 +78,6 @@ def test__get_full_signature_parameters__new_function():
         "args": inspect.Parameter("args", inspect.Parameter.VAR_POSITIONAL),
         "kwargs": inspect.Parameter("kwargs", inspect.Parameter.VAR_KEYWORD),
         "a": inspect.Parameter("a", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int),
-        "b": inspect.Parameter("b", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=str),
-        "c": inspect.Parameter("c", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=float),
+        "b": inspect.Parameter("b", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=MockA),
+        "c": inspect.Parameter("c", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=float, default=0.2),
     }
