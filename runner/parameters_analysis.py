@@ -30,11 +30,19 @@ def need_params_for_signature(obj: Any, add_options_from_outside_packages: bool)
 
 
 def get_full_signature_parameters(
-    klass: type, base_klass: type, signature_name: str = None
+    klass: type,
+    base_klass: Optional[type],
+    signature_name: str = None,
+    add_options_from_outside_packages: bool = True,
 ) -> Dict[str, inspect.Parameter]:
     parameters = {}
     for parent_class in getattr(klass, "__bases__", []):
-        if issubclass(parent_class, base_klass):
+        needs_parent_class = (
+            issubclass(parent_class, base_klass)
+            if base_klass
+            else need_params_for_signature(parent_class, add_options_from_outside_packages)
+        )
+        if needs_parent_class:
             parameters.update(
                 get_full_signature_parameters(parent_class, base_klass, signature_name)
             )
@@ -53,7 +61,7 @@ def needed_parameters_for_creation(
 ) -> dict:
     logger = logger or logging.getLogger(__name__)
     parameters = {}
-    for param, value in get_full_signature_parameters(klass, klass, signature_name).items():
+    for param, value in get_full_signature_parameters(klass, None, signature_name).items():
         if (
             value.kind == inspect.Parameter.VAR_POSITIONAL
             or value.kind == inspect.Parameter.VAR_KEYWORD
@@ -66,7 +74,9 @@ def needed_parameters_for_creation(
             logger.warning(
                 f"Multiple types found for {param} in {klass.__name__} signature. Using the first one."
             )
-        default_type_from_secondary_option = key_value_config.get(param_type_col_name) or value.annotation
+        default_type_from_secondary_option = (
+            key_value_config.get(param_type_col_name) or value.annotation
+        )
         param_type = param_type[0] if param_type else default_type_from_secondary_option
         if need_params_for_signature(param_type, add_options_from_outside_packages):
             klass_parameters = needed_parameters_for_creation(
