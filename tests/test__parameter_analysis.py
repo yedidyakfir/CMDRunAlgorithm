@@ -10,6 +10,22 @@ class MockA:
     pass
 
 
+class MockB:
+    def __init__(self, a: int, b: str):
+        pass
+
+    def func_name(self, a: int, b: str):
+        pass
+
+
+class MockC(MockB):
+    def __init__(self, a: int, b: str, c: float):
+        pass
+
+    def func_name(self, a: int, b: str, c: float, *args, **kwargs):
+        pass
+
+
 @pytest.mark.parametrize(
     ["obj", "add_options_from_outside_packages", "expected"],
     [
@@ -35,15 +51,6 @@ def test__need_params_for_signature__sanity(obj, add_options_from_outside_packag
 
 
 def test__get_full_signature_parameters__sanity():
-    # Arrange
-    class MockB:
-        def __init__(self, a: int, b: str):
-            pass
-
-    class MockC(MockB):
-        def __init__(self, a: int, b: str, c: float):
-            pass
-
     # Act
     result = get_full_signature_parameters(MockC, MockC)
 
@@ -56,15 +63,6 @@ def test__get_full_signature_parameters__sanity():
 
 
 def test__get_full_signature_parameters__new_function():
-    # Arrange
-    class MockB:
-        def func_name(self, a: int, b: str):
-            pass
-
-    class MockC(MockB):
-        def func_name(self, a: int, b: str, c: float, *args, **kwargs):
-            pass
-
     # Act
     result = get_full_signature_parameters(MockC, MockC, "func_name")
 
