@@ -6,7 +6,10 @@ from logging import Logger
 from typing import Dict, Pattern, Any, Optional
 
 from runner.utils.python import PRIMITIVES
-from runner.utils.regex import get_values_from_matching_patterns
+from runner.utils.regex import (
+    get_values_from_matching_patterns,
+    get_first_value_for_matching_patterns,
+)
 
 
 @dataclasses.dataclass
@@ -69,11 +72,9 @@ def needed_parameters_for_creation(
         ):
             continue
         param_type_col_name = f"{param}_type"
-        param_type = get_values_from_matching_patterns(regex_config, param_type_col_name)
-        if len(param_type) > 1:
-            logger.warning(
-                f"Multiple types found for {param} in {klass.__name__} signature. Using the first one."
-            )
+        param_type = get_first_value_for_matching_patterns(
+            regex_config, param_type_col_name, logger
+        )
         default_type_from_secondary_option = (
             key_value_config.get(param_type_col_name)
             if isinstance(key_value_config, dict)
@@ -82,7 +83,7 @@ def needed_parameters_for_creation(
         default_type_from_secondary_option = (
             default_type_from_secondary_option or value.annotation
         )
-        param_type = param_type[0] if param_type else default_type_from_secondary_option
+        param_type = param_type or default_type_from_secondary_option
         if need_params_for_signature(param_type, add_options_from_outside_packages):
             klass_parameters = needed_parameters_for_creation(
                 param_type,
@@ -93,6 +94,12 @@ def needed_parameters_for_creation(
                 logger,
             )
             parameters[param] = ParameterCLI(param_type, None, klass_parameters)
+        elif matching_rules_values := get_first_value_for_matching_patterns(
+            regex_config, param, logger
+        ):
+            parameters[param] = ParameterCLI(param_type, matching_rules_values, {})
+        elif key_value_config is not None:
+            parameters[param] = ParameterCLI(param_type, key_value_config, {})
         elif value.default == inspect.Parameter.empty:
             parameters[param] = ParameterCLI(value.annotation, None, {})
         else:
