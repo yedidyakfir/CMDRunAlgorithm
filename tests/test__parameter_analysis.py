@@ -1,4 +1,5 @@
 import inspect
+import re
 from unittest.mock import MagicMock
 
 import pytest
@@ -8,6 +9,7 @@ from runner.parameters_analysis import (
     need_params_for_signature,
     get_full_signature_parameters,
     needed_parameters_for_creation,
+    ParameterCLI,
 )
 
 
@@ -80,5 +82,49 @@ def test__get_full_signature_parameters__new_function():
         "kwargs": inspect.Parameter("kwargs", inspect.Parameter.VAR_KEYWORD),
         "a": inspect.Parameter("a", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int),
         "b": inspect.Parameter("b", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=MockA),
-        "c": inspect.Parameter("c", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=float, default=0.2),
+        "c": inspect.Parameter(
+            "c", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=float, default=0.2
+        ),
+    }
+
+
+def test__needed_parameters_for_creation__sanity():
+    # Arrange
+    key_value_config = {
+        "a_type": MockB,
+        "a": {"b": "BBBBB"},
+        "b_type": str,
+        "c": 0.1,
+        "f": "F",
+        "b": {"aa": "hi"},
+    }
+    regex_config = {re.compile(r".*\.a$"): 12, re.compile(r"^f_type$"): MockA}
+    signature_name = "func_name"
+
+    # Act
+    result = needed_parameters_for_creation(
+        MockC, signature_name, key_value_config, regex_config, True, MagicMock()
+    )
+
+    # Assert
+    assert result == {
+        "a": ParameterCLI(
+            type=MockB,
+            default=None,
+            requirements={
+                "a": ParameterCLI(type=int, default=None, requirements={}),
+                "b": ParameterCLI(type=str, default=None, requirements={}),
+            },
+        ),
+        "b": ParameterCLI(type=MockA, default=None, requirements={}),
+        "c": ParameterCLI(type=float, default=0.2, requirements={}),
+        "e": ParameterCLI(type=int, default=None, requirements={}),
+        "f": ParameterCLI(
+            type=MockA,
+            default=None,
+            requirements={
+                "a": ParameterCLI(type=int, default=None, requirements={}),
+                "aa": ParameterCLI(type=str, default=None, requirements={}),
+            },
+        ),
     }
