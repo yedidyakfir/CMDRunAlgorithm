@@ -21,7 +21,6 @@ PRIMITIVES = (
     staticmethod,
     classmethod,
     super,
-    ellipsis,
     NotImplemented,
     type,
     object,

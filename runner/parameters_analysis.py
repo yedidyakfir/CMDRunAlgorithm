@@ -75,7 +75,12 @@ def needed_parameters_for_creation(
                 f"Multiple types found for {param} in {klass.__name__} signature. Using the first one."
             )
         default_type_from_secondary_option = (
-            key_value_config.get(param_type_col_name) or value.annotation
+            key_value_config.get(param_type_col_name)
+            if isinstance(key_value_config, dict)
+            else None
+        )
+        default_type_from_secondary_option = (
+            default_type_from_secondary_option or value.annotation
         )
         param_type = param_type[0] if param_type else default_type_from_secondary_option
         if need_params_for_signature(param_type, add_options_from_outside_packages):
