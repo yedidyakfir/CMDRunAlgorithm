@@ -37,6 +37,7 @@ class MockC(MockB):
     [
         (1, True, False),
         (1, False, False),
+        (int, True, False),
         (MockA, True, True),
         (MockA, False, True),
         (object, False, False),

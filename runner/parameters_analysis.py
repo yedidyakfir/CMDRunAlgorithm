@@ -5,6 +5,7 @@ import logging
 from logging import Logger
 from typing import Dict, Pattern, Any, Optional
 
+from runner.utils.python import PRIMITIVES
 from runner.utils.regex import get_values_from_matching_patterns
 
 
@@ -16,7 +17,7 @@ class ParameterCLI:
 
 
 def need_params_for_signature(obj: Any, add_options_from_outside_packages: bool) -> bool:
-    if not inspect.isclass(obj):
+    if not inspect.isclass(obj) or obj in PRIMITIVES:
         return False
     module = inspect.getmodule(obj).__name__
     current_module = inspect.currentframe().f_globals.get("__name__")
