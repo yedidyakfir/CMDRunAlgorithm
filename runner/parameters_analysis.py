@@ -60,12 +60,13 @@ def needed_parameters_for_creation(
             or param == "self"
         ):
             continue
-        param_type = get_values_from_matching_patterns(regex_config, f"{param}_type")
+        param_type_col_name = f"{param}_type"
+        param_type = get_values_from_matching_patterns(regex_config, param_type_col_name)
         if len(param_type) > 1:
             logger.warning(
                 f"Multiple types found for {param} in {klass.__name__} signature. Using the first one."
             )
-        default_type_from_secondary_option = key_value_config.get(param) or value.annotation
+        default_type_from_secondary_option = key_value_config.get(param_type_col_name) or value.annotation
         param_type = param_type[0] if param_type else default_type_from_secondary_option
         if need_params_for_signature(param_type, add_options_from_outside_packages):
             klass_parameters = needed_parameters_for_creation(
