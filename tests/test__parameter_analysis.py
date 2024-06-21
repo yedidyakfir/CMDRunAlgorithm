@@ -137,6 +137,21 @@ def test__needed_parameters_for_creation__sanity():
     assert result == expected
 
 
+def test__needed_parameters_for_creation__warning_for_unmatching_value_and_type():
+    # Arrange
+    key_value_config = {"a": {"b": "BBBBB"}}
+    regex_config = {re.compile(r"a_type$"): str}
+    logger = MagicMock()
+
+    # Act
+    needed_parameters_for_creation(
+        MockA, None, key_value_config, regex_config, True, logger=logger
+    )
+
+    # Assert
+    logger.warning.assert_called_once()
+
+
 def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
     # Arrange
     regex_config = {re.compile(r".*\.a$"): 12, re.compile(r"^b\.a$"): MockA}
@@ -147,6 +162,3 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
 
     # Assert
     logger.warning.assert_called_once()
-
-
-# TODO -
