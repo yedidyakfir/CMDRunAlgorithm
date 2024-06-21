@@ -96,35 +96,57 @@ def test__needed_parameters_for_creation__sanity():
         "b_type": str,
         "c": 0.1,
         "f": "F",
-        "b": {"aa": "hi"},
+        "b": "bbb",
     }
     regex_config = {re.compile(r".*\.a$"): 12, re.compile(r"^f_type$"): MockA}
     signature_name = "func_name"
-
-    # Act
-    result = needed_parameters_for_creation(
-        MockC, signature_name, key_value_config, regex_config, True, MagicMock()
-    )
-
-    # Assert
-    assert result == {
+    expected = {
         "a": ParameterCLI(
             type=MockB,
             default=None,
             requirements={
-                "a": ParameterCLI(type=int, default=None, requirements={}),
-                "b": ParameterCLI(type=str, default=None, requirements={}),
+                "b": ParameterCLI(type=str, default="BBBBB", requirements={}),
+                "a": ParameterCLI(type=int, default=12, requirements={}),
             },
         ),
-        "b": ParameterCLI(type=MockA, default=None, requirements={}),
-        "c": ParameterCLI(type=float, default=0.2, requirements={}),
-        "e": ParameterCLI(type=int, default=None, requirements={}),
+        "b": ParameterCLI(
+            type=str,
+            default="bbb",
+            requirements={},
+        ),
+        "c": ParameterCLI(type=float, default=0.1, requirements={}),
         "f": ParameterCLI(
             type=MockA,
             default=None,
             requirements={
-                "a": ParameterCLI(type=int, default=None, requirements={}),
+                "a": ParameterCLI(type=int, default=12, requirements={}),
                 "aa": ParameterCLI(type=str, default=None, requirements={}),
             },
         ),
+        "e": ParameterCLI(type=int, default=None, requirements={}),
     }
+    logger = MagicMock()
+
+    # Act
+    result = needed_parameters_for_creation(
+        MockC, signature_name, key_value_config, regex_config, True, logger=logger
+    )
+
+    # Assert
+    logger.warning.assert_not_called()
+    assert result == expected
+
+
+def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
+    # Arrange
+    regex_config = {re.compile(r".*\.a$"): 12, re.compile(r"^b\.a$"): MockA}
+    logger = MagicMock()
+
+    # Act
+    needed_parameters_for_creation(MockC, "func_name", {}, regex_config, True, logger=logger)
+
+    # Assert
+    logger.warning.assert_called_once()
+
+
+# TODO -
