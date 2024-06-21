@@ -16,7 +16,7 @@ from runner.utils.regex import (
 class ParameterCLI:
     type: type
     default: Any
-    requirements: Dict[str, "ParameterCLI"]
+    requirements: Dict[str, Any]
 
 
 def need_params_for_signature(obj: Any, add_options_from_outside_packages: bool) -> bool:
@@ -60,6 +60,7 @@ def needed_parameters_for_creation(
     key_value_config: dict,
     regex_config: Dict[Pattern, Any],
     add_options_from_outside_packages: bool,
+    initials: str = "",
     logger: Logger = None,
 ) -> dict:
     logger = logger or logging.getLogger(__name__)
@@ -71,7 +72,7 @@ def needed_parameters_for_creation(
             or param == "self"
         ):
             continue
-        param_type_col_name = f"{param}_type"
+        param_type_col_name = f"{initials}{param}_type"
         param_type = get_first_value_for_matching_patterns(
             regex_config, param_type_col_name, logger
         )
@@ -91,17 +92,26 @@ def needed_parameters_for_creation(
                 key_value_config.get(param),
                 regex_config,
                 add_options_from_outside_packages,
+                f"{initials}{param}.",
                 logger,
             )
-            parameters[param] = ParameterCLI(param_type, None, klass_parameters)
+            final_parameter = ParameterCLI(param_type, None, klass_parameters)
         elif matching_rules_values := get_first_value_for_matching_patterns(
-            regex_config, param, logger
+            regex_config, f"{initials}{param}", logger
         ):
-            parameters[param] = ParameterCLI(param_type, matching_rules_values, {})
-        elif key_value_config is not None:
-            parameters[param] = ParameterCLI(param_type, key_value_config, {})
+            final_parameter = ParameterCLI(param_type, matching_rules_values, {})
+        elif key_value_config and param in key_value_config:
+            final_parameter = ParameterCLI(param_type, key_value_config.get(param), {})
         elif value.default == inspect.Parameter.empty:
-            parameters[param] = ParameterCLI(value.annotation, None, {})
+            final_parameter = ParameterCLI(value.annotation, None, {})
         else:
-            parameters[param] = ParameterCLI(type(value.default), value.default, {})
+            final_parameter = ParameterCLI(type(value.default), value.default, {})
+        if (
+            not isinstance(final_parameter.default, final_parameter.type)
+            and final_parameter.default is not None
+        ):
+            logger.warning(
+                f"Parameter {initials}{param} has a default value that is not of the same type as the parameter"
+            )
+        parameters[param] = final_parameter
     return parameters
