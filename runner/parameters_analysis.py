@@ -49,6 +49,8 @@ def get_full_signature_parameters(
             parameters.update(
                 get_full_signature_parameters(parent_class, base_klass, signature_name)
             )
+    if signature_name and not hasattr(klass, signature_name):
+        return {}
     func = getattr(klass, signature_name) if signature_name else klass
     parameters.update(inspect.signature(func).parameters)
     return parameters

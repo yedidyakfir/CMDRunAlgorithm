@@ -11,27 +11,8 @@ from runner.parameters_analysis import (
     needed_parameters_for_creation,
     ParameterCLI,
 )
-
-
-class MockA:
-    def __init__(self, a: int, aa: str):
-        pass
-
-
-class MockB:
-    def __init__(self, a: int, b: str):
-        pass
-
-    def func_name(self, e: int, f: str):
-        pass
-
-
-class MockC(MockB):
-    def __init__(self, a: int, b: str, c: float):
-        pass
-
-    def func_name(self, a: int, b: MockA, c: float = 0.2, *args, **kwargs):
-        pass
+from tests.mock_module.a import MockA, MockB
+from tests.mock_module.sub_mock_module.b import MockC
 
 
 @pytest.mark.parametrize(
@@ -49,7 +30,10 @@ class MockC(MockB):
 )
 def test__need_params_for_signature__sanity(obj, add_options_from_outside_packages, expected):
     # Arrange
-    if inspect.isclass(obj) and inspect.getmodule(obj).__name__ == __name__:
+    if (
+        inspect.isclass(obj)
+        and inspect.getmodule(obj).__name__.split(".")[0] == __name__.split(".")[0]
+    ):
         obj.__module__ = "runner.parameters_analysis"
 
     # Act
