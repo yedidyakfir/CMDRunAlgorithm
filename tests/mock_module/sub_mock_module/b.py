@@ -1,3 +1,5 @@
+import abc
+
 from tests.mock_module.a import MockB, MockA
 
 
@@ -6,4 +8,13 @@ class MockC(MockB):
         pass
 
     def func_name(self, a: int, b: MockA, c: float = 0.2, *args, **kwargs):
+        pass
+
+
+class MockE(MockA):
+    @abc.abstractmethod
+    def start(self):
+        pass
+
+    def func_name(self, dd: int):
         pass

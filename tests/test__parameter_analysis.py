@@ -12,7 +12,7 @@ from runner.parameters_analysis import (
     ParameterCLI,
 )
 from tests.mock_module.a import MockA, MockB
-from tests.mock_module.sub_mock_module.b import MockC
+from tests.mock_module.sub_mock_module.b import MockC, MockE
 
 
 @pytest.mark.parametrize(
@@ -69,6 +69,17 @@ def test__get_full_signature_parameters__new_function():
         "c": inspect.Parameter(
             "c", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=float, default=0.2
         ),
+    }
+
+
+def test__get_full_signature_parameters__stops_at_class_with_no_signature_name():
+    # Act
+    results = get_full_signature_parameters(MockE, MockE, "func_name")
+
+    # Assert
+    assert results == {
+        "dd": inspect.Parameter("dd", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int),
+        "self": inspect.Parameter("self", inspect.Parameter.POSITIONAL_OR_KEYWORD),
     }
 
 
