@@ -11,8 +11,11 @@ from runner.utils.regex import get_first_value_for_matching_patterns
 @dataclasses.dataclass
 class ParameterCLI:
     type: type
-    default: Any
-    requirements: Dict[str, Any]
+    value: Any
+    requirements: Dict[str, "ParameterCLI"]
+
+
+ParameterType = Dict[str, ParameterCLI]
 
 
 def need_params_for_signature(obj: Any, add_options_from_outside_packages: bool) -> bool:
@@ -83,11 +86,13 @@ def needed_parameters_for_creation(
             default_type_from_secondary_option or value.annotation
         )
         param_type = param_type or default_type_from_secondary_option
-        if need_params_for_signature(param_type, add_options_from_outside_packages):
+        if key_value_config.get(param) == "None":
+            final_parameter = ParameterCLI(param_type, None, {})
+        elif need_params_for_signature(param_type, add_options_from_outside_packages):
             klass_parameters = needed_parameters_for_creation(
                 param_type,
                 None,
-                key_value_config.get(param),
+                key_value_config.get(param, {}),
                 regex_config,
                 add_options_from_outside_packages,
                 f"{initials}{param}.",
@@ -118,8 +123,9 @@ def needed_parameters_for_creation(
                 f"Parameter {initials}{param} set to {value.default} from the signature"
             )
         if (
-            not isinstance(final_parameter.default, final_parameter.type)
-            and final_parameter.default is not None
+            final_parameter
+            and not isinstance(final_parameter.value, final_parameter.type)
+            and final_parameter.value is not None
         ):
             logger.warning(
                 f"Parameter {initials}{param} has a default value that is not of the same type as the parameter"

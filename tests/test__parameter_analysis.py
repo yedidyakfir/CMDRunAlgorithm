@@ -87,10 +87,9 @@ def test__needed_parameters_for_creation__sanity():
     # Arrange
     key_value_config = {
         "a_type": MockB,
-        "a": {"b": "BBBBB"},
+        "a": {"b": "BBBBB", "a": "None"},
         "b_type": str,
         "c": 0.1,
-        "f": "F",
         "b": "bbb",
     }
     regex_config = {re.compile(r".*\.a$"): 12, re.compile(r"^f_type$"): MockA}
@@ -98,27 +97,27 @@ def test__needed_parameters_for_creation__sanity():
     expected = {
         "a": ParameterCLI(
             type=MockB,
-            default=None,
+            value=None,
             requirements={
-                "b": ParameterCLI(type=str, default="BBBBB", requirements={}),
-                "a": ParameterCLI(type=int, default=12, requirements={}),
+                "b": ParameterCLI(type=str, value="BBBBB", requirements={}),
+                "a": ParameterCLI(type=int, value=None, requirements={}),
             },
         ),
         "b": ParameterCLI(
             type=str,
-            default="bbb",
+            value="bbb",
             requirements={},
         ),
-        "c": ParameterCLI(type=float, default=0.1, requirements={}),
+        "c": ParameterCLI(type=float, value=0.1, requirements={}),
         "f": ParameterCLI(
             type=MockA,
-            default=None,
+            value=None,
             requirements={
-                "a": ParameterCLI(type=int, default=12, requirements={}),
-                "aa": ParameterCLI(type=str, default=None, requirements={}),
+                "a": ParameterCLI(type=int, value=12, requirements={}),
+                "aa": ParameterCLI(type=str, value=None, requirements={}),
             },
         ),
-        "e": ParameterCLI(type=int, default=None, requirements={}),
+        "e": ParameterCLI(type=int, value=None, requirements={}),
     }
     logger = MagicMock()
 
