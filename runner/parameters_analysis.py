@@ -56,6 +56,7 @@ def get_full_signature_parameters(
 
 
 def needed_parameters_for_creation(
+def needed_parameters_for_calling(
     klass: type,
     signature_name: Optional[str],
     key_value_config: dict,
@@ -89,7 +90,7 @@ def needed_parameters_for_creation(
         if key_value_config.get(param) == "None":
             final_parameter = ParameterCLI(param_type, None, {})
         elif need_params_for_signature(param_type, add_options_from_outside_packages):
-            klass_parameters = needed_parameters_for_creation(
+            klass_parameters = needed_parameters_for_calling(
                 param_type,
                 None,
                 key_value_config.get(param, {}),

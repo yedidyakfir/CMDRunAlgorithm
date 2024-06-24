@@ -8,7 +8,7 @@ from torch.optim import Adam
 from runner.parameters_analysis import (
     need_params_for_signature,
     get_full_signature_parameters,
-    needed_parameters_for_creation,
+    needed_parameters_for_calling,
     ParameterCLI,
 )
 from tests.mock_module.a import MockA, MockB
@@ -122,7 +122,7 @@ def test__needed_parameters_for_creation__sanity():
     logger = MagicMock()
 
     # Act
-    result = needed_parameters_for_creation(
+    result = needed_parameters_for_calling(
         MockC, signature_name, key_value_config, regex_config, True, logger=logger
     )
 
@@ -138,7 +138,7 @@ def test__needed_parameters_for_creation__warning_for_unmatching_value_and_type(
     logger = MagicMock()
 
     # Act
-    needed_parameters_for_creation(
+    needed_parameters_for_calling(
         MockA, None, key_value_config, regex_config, True, logger=logger
     )
 
@@ -152,7 +152,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
     logger = MagicMock()
 
     # Act
-    needed_parameters_for_creation(MockC, "func_name", {}, regex_config, True, logger=logger)
+    needed_parameters_for_calling(MockC, "func_name", {}, regex_config, True, logger=logger)
 
     # Assert
     logger.warning.assert_called_once()
