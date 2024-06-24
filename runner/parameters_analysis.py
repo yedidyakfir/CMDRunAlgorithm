@@ -99,17 +99,17 @@ def needed_parameters_for_creation(
             )
             final_parameter = ParameterCLI(param_type, None, klass_parameters)
             logger.info(f"Parameter {initials}{param} is a {param_type}")
+        elif key_value_config and param in key_value_config:
+            final_parameter = ParameterCLI(param_type, key_value_config.get(param), {})
+            logger.info(
+                f"Parameter {initials}{param} set to {key_value_config.get(param)} from a config"
+            )
         elif matching_rules_values := get_first_value_for_matching_patterns(
             regex_config, f"{initials}{param}", logger
         ):
             final_parameter = ParameterCLI(param_type, matching_rules_values, {})
             logger.info(
                 f"Parameter {initials}{param} set to {matching_rules_values} from a rule"
-            )
-        elif key_value_config and param in key_value_config:
-            final_parameter = ParameterCLI(param_type, key_value_config.get(param), {})
-            logger.info(
-                f"Parameter {initials}{param} set to {key_value_config.get(param)} from a config"
             )
         elif value.default == inspect.Parameter.empty:
             final_parameter = ParameterCLI(value.annotation, None, {})
