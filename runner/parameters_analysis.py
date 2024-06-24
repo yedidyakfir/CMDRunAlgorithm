@@ -1,15 +1,11 @@
 import dataclasses
-import importlib.util
 import inspect
 import logging
 from logging import Logger
 from typing import Dict, Pattern, Any, Optional
 
 from runner.utils.python import PRIMITIVES
-from runner.utils.regex import (
-    get_values_from_matching_patterns,
-    get_first_value_for_matching_patterns,
-)
+from runner.utils.regex import get_first_value_for_matching_patterns
 
 
 @dataclasses.dataclass
