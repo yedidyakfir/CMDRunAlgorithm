@@ -12,13 +12,15 @@ from runner.utils.regex import get_first_value_for_matching_patterns
 
 
 @dataclasses.dataclass
-class ParameterCLI:
+class ParameterHierarchy:
     type: type  # This is needed only for creating the class, We need to understand what to do with typing module
     value: Any
-    requirements: Dict[str, "ParameterCLI"]
+    requirements: Dict[str, "ParameterHierarchy"]
 
 
-ParameterType = Dict[str, ParameterCLI]
+
+
+ParameterType = Dict[str, ParameterHierarchy]
 
 
 def create_param_type(module: ModuleType, param_type: Any):
@@ -114,7 +116,7 @@ def needed_parameters_for_calling(
         param_type = param_type or default_type_from_secondary_option
         param_type = create_param_type(base_module, param_type)
         if key_value_config.get(param) == "None":
-            final_parameter = ParameterCLI(param_type, None, {})
+            final_parameter = ParameterHierarchy(param_type, None, {})
         elif need_params_for_signature(param_type, add_options_from_outside_packages):
             klass_parameters = needed_parameters_for_calling(
                 param_type,
@@ -126,27 +128,27 @@ def needed_parameters_for_calling(
                 f"{initials}{param}.",
                 logger,
             )
-            final_parameter = ParameterCLI(param_type, None, klass_parameters)
+            final_parameter = ParameterHierarchy(param_type, None, klass_parameters)
             logger.info(f"Parameter {initials}{param} is a {param_type}")
         elif key_value_config and param in key_value_config:
-            final_parameter = ParameterCLI(param_type, key_value_config.get(param), {})
+            final_parameter = ParameterHierarchy(param_type, key_value_config.get(param), {})
             logger.info(
                 f"Parameter {initials}{param} set to {key_value_config.get(param)} from a config"
             )
         elif matching_rules_values := get_first_value_for_matching_patterns(
             regex_config, f"{initials}{param}", logger
         ):
-            final_parameter = ParameterCLI(param_type, matching_rules_values, {})
+            final_parameter = ParameterHierarchy(param_type, matching_rules_values, {})
             logger.info(
                 f"Parameter {initials}{param} set to {matching_rules_values} from a rule"
             )
         elif value.default == inspect.Parameter.empty:
-            final_parameter = ParameterCLI(annotation, None, {})
+            final_parameter = ParameterHierarchy(annotation, None, {})
             logger.info(
                 f"Parameter {initials}{param} has no default value, set as {value.annotation}"
             )
         else:
-            final_parameter = ParameterCLI(
+            final_parameter = ParameterHierarchy(
                 type(value.default) if value.default is not None else None, value.default, {}
             )
             logger.info(
