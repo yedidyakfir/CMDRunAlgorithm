@@ -11,6 +11,7 @@ from runner.parameters_analysis import (
     needed_parameters_for_calling,
     ParameterCLI,
 )
+from tests import mock_module
 from tests.mock_module.a import MockA, MockB
 from tests.mock_module.sub_mock_module.b import MockC, MockE
 
@@ -86,7 +87,7 @@ def test__get_full_signature_parameters__stops_at_class_with_no_signature_name()
 def test__needed_parameters_for_creation__sanity():
     # Arrange
     key_value_config = {
-        "a_type": MockB,
+        "a_type": "MockB",
         "a": {"b": "BBBBB", "a": "None"},
         "b_type": str,
         "c": 0.1,
@@ -123,7 +124,7 @@ def test__needed_parameters_for_creation__sanity():
 
     # Act
     result = needed_parameters_for_calling(
-        MockC, signature_name, key_value_config, regex_config, True, logger=logger
+        MockC, signature_name, key_value_config, regex_config, mock_module, True, logger=logger
     )
 
     # Assert
@@ -139,7 +140,7 @@ def test__needed_parameters_for_creation__warning_for_unmatching_value_and_type(
 
     # Act
     needed_parameters_for_calling(
-        MockA, None, key_value_config, regex_config, True, logger=logger
+        MockA, None, key_value_config, regex_config, mock_module, True, logger=logger
     )
 
     # Assert
@@ -152,7 +153,9 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
     logger = MagicMock()
 
     # Act
-    needed_parameters_for_calling(MockC, "func_name", {}, regex_config, True, logger=logger)
+    needed_parameters_for_calling(
+        MockC, "func_name", {}, regex_config, mock_module, True, logger=logger
+    )
 
     # Assert
     logger.warning.assert_called_once()

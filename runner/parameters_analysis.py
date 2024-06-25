@@ -1,9 +1,12 @@
 import dataclasses
+import importlib
 import inspect
 import logging
 from logging import Logger
+from types import ModuleType
 from typing import Dict, Pattern, Any, Optional
 
+from runner.dynamic_loading import find_class_by_name
 from runner.utils.python import PRIMITIVES
 from runner.utils.regex import get_first_value_for_matching_patterns
 
@@ -16,6 +19,19 @@ class ParameterCLI:
 
 
 ParameterType = Dict[str, ParameterCLI]
+
+
+def create_param_type(module: ModuleType, param_type: Any):
+    if isinstance(param_type, str):
+        if "." in param_type:
+            param_type_path = param_type.split(".")
+            class_name, module_name = param_type_path[-1], ".".join(param_type_path[:-1])
+            class_type = getattr(importlib.import_module(module_name), class_name)
+        else:
+            class_type = find_class_by_name(module, param_type)
+    else:
+        class_type = param_type
+    return class_type
 
 
 def need_params_for_signature(obj: Any, add_options_from_outside_packages: bool) -> bool:
@@ -61,6 +77,7 @@ def needed_parameters_for_calling(
     signature_name: Optional[str],
     key_value_config: dict,
     regex_config: Dict[Pattern, Any],
+    base_module: ModuleType,
     add_options_from_outside_packages: bool,
     initials: str = "",
     logger: Logger = None,
@@ -87,6 +104,7 @@ def needed_parameters_for_calling(
             default_type_from_secondary_option or value.annotation
         )
         param_type = param_type or default_type_from_secondary_option
+        param_type = create_param_type(base_module, param_type)
         if key_value_config.get(param) == "None":
             final_parameter = ParameterCLI(param_type, None, {})
         elif need_params_for_signature(param_type, add_options_from_outside_packages):
@@ -95,6 +113,7 @@ def needed_parameters_for_calling(
                 None,
                 key_value_config.get(param, {}),
                 regex_config,
+                base_module,
                 add_options_from_outside_packages,
                 f"{initials}{param}.",
                 logger,
