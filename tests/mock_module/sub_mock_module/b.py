@@ -1,4 +1,7 @@
 import abc
+from typing import List
+
+from torch.optim import SGD
 
 from tests.mock_module.a import MockB, MockA
 
@@ -17,4 +20,17 @@ class MockE(MockA):
         pass
 
     def func_name(self, dd: int):
+        pass
+
+
+class MockG:
+    def start(self):
+        pass
+
+    def func_name(self, opt: SGD, eps: List[str]):
+        pass
+
+
+class MockF:
+    def func_name(self, opt: List[SGD]):
         pass

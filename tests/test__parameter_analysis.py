@@ -1,5 +1,6 @@
 import inspect
 import re
+import typing
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,10 +11,12 @@ from runner.parameters_analysis import (
     get_full_signature_parameters,
     needed_parameters_for_calling,
     ParameterHierarchy,
+    cli_parameters_for_calling,
+    CliParam,
 )
 from tests import mock_module
 from tests.mock_module.a import MockA, MockB
-from tests.mock_module.sub_mock_module.b import MockC, MockE
+from tests.mock_module.sub_mock_module.b import MockC, MockE, MockG, MockF
 
 
 @pytest.mark.parametrize(
@@ -106,7 +109,9 @@ def test__needed_parameters_for_creation__sanity():
                     requirements={
                         "dampening": ParameterHierarchy(type=int, value=0, requirements={}),
                         "defaults": ParameterHierarchy(type=None, value=None, requirements={}),
-                        "differentiable": ParameterHierarchy(type=bool, value=False, requirements={}),
+                        "differentiable": ParameterHierarchy(
+                            type=bool, value=False, requirements={}
+                        ),
                         "foreach": ParameterHierarchy(type=None, value=None, requirements={}),
                         "lr": ParameterHierarchy(type=float, value=0.001, requirements={}),
                         "maximize": ParameterHierarchy(type=bool, value=False, requirements={}),
@@ -174,3 +179,82 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
 
     # Assert
     logger.warning.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ["klass", "signature_name", "outside_classes", "expected"],
+    [
+        [
+            MockB,
+            None,
+            True,
+            [
+                CliParam(type=str, multiple=False, default=None, name="a_type"),
+                CliParam(type=int, multiple=False, default=None, name="a"),
+                CliParam(type=str, multiple=False, default=None, name="b_type"),
+                CliParam(type=str, multiple=False, default=None, name="b"),
+            ],
+        ],
+        [
+            MockC,
+            "func_name",
+            True,
+            [
+                CliParam(type=str, multiple=False, default=None, name="e_type"),
+                CliParam(type=int, multiple=False, default=None, name="e"),
+                CliParam(type=str, multiple=False, default=None, name="f_type"),
+                CliParam(type=str, multiple=False, default=None, name="f"),
+                CliParam(type=str, multiple=False, default=None, name="a_type"),
+                CliParam(type=int, multiple=False, default=None, name="a"),
+                CliParam(type=str, multiple=False, default=None, name="b_type"),
+                CliParam(type=str, multiple=False, default=None, name="b.a_type"),
+                CliParam(type=int, multiple=False, default=None, name="b.a"),
+                CliParam(type=str, multiple=False, default=None, name="b.aa_type"),
+                CliParam(type=str, multiple=False, default=None, name="b.aa"),
+                CliParam(type=str, multiple=False, default=None, name="c_type"),
+                CliParam(type=float, multiple=False, default=None, name="c"),
+            ],
+        ],
+        [
+            MockG,
+            "func_name",
+            True,
+            [
+                CliParam(type=str, multiple=False, default=None, name="opt_type"),
+                CliParam(type=str, multiple=False, default=None, name="opt.params_type"),
+                CliParam(type=str, multiple=False, default=None, name="opt.defaults_type"),
+                CliParam(type=str, multiple=False, default=None, name="opt.defaults"),
+                CliParam(type=str, multiple=False, default=None, name="opt.lr_type"),
+                CliParam(type=str, multiple=False, default=None, name="opt.momentum_type"),
+                CliParam(type=str, multiple=False, default=None, name="opt.dampening_type"),
+                CliParam(type=str, multiple=False, default=None, name="opt.weight_decay_type"),
+                CliParam(type=str, multiple=False, default=None, name="opt.nesterov_type"),
+                CliParam(type=str, multiple=False, default=None, name="opt.maximize_type"),
+                CliParam(type=bool, multiple=False, default=None, name="opt.maximize"),
+                CliParam(type=str, multiple=False, default=None, name="opt.foreach_type"),
+                CliParam(type=str, multiple=False, default=None, name="opt.foreach"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.differentiable_type"
+                ),
+                CliParam(type=bool, multiple=False, default=None, name="opt.differentiable"),
+                CliParam(type=str, multiple=False, default=None, name="eps_type"),
+                CliParam(type=str, multiple=True, default=None, name="eps"),
+            ],
+        ],
+        [
+            MockF,
+            "func_name",
+            True,
+            [
+                CliParam(type=str, multiple=False, default=None, name="opt_type"),
+                CliParam(type=str, multiple=False, default=None, name="opt"),
+            ],
+        ],
+    ],
+)
+def test__cli_parameters_for_calling__sanity(klass, signature_name, outside_classes, expected):
+    # Act
+    results = cli_parameters_for_calling(klass, signature_name, outside_classes, mock_module)
+
+    # Assert
+    assert results == expected

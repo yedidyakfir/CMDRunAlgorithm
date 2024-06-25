@@ -2,12 +2,13 @@ import dataclasses
 import importlib
 import inspect
 import logging
+import typing
 from logging import Logger
 from types import ModuleType
 from typing import Dict, Pattern, Any, Optional, List
 
 from runner.dynamic_loading import find_class_by_name, find_subclasses
-from runner.utils.python import PRIMITIVES
+from runner.utils.python import PRIMITIVES, notation_belong_to_typing
 from runner.utils.regex import get_first_value_for_matching_patterns
 
 
@@ -45,7 +46,7 @@ def create_param_type(module: ModuleType, param_type: Any):
 def extract_type_from_annotation(annotation):
     if annotation == inspect.Parameter.empty:
         return None
-    if hasattr(annotation, "__module__") and annotation.__module__ == "typing":
+    if notation_belong_to_typing(annotation):
         return None
     return annotation
 
@@ -119,9 +120,14 @@ def cli_parameters_for_calling(
                     logger,
                 )
                 parameters += klass_parameters
-        elif param_type == List:
-            parameters.append(CliParam(param_type.__origin__, True, None, full_param_path))
+        elif typing.get_origin(param_type) == list and not need_params_for_signature(
+            typing.get_args(param_type)[0], True
+        ):
+            parameters.append(
+                CliParam(typing.get_args(param_type)[0], True, None, full_param_path)
+            )
         else:
+            param_type = str if notation_belong_to_typing(param_type) else param_type
             parameters.append(CliParam(param_type, False, None, full_param_path))
     return parameters
 
