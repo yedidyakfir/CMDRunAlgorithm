@@ -4,9 +4,9 @@ import inspect
 import logging
 from logging import Logger
 from types import ModuleType
-from typing import Dict, Pattern, Any, Optional
+from typing import Dict, Pattern, Any, Optional, List
 
-from runner.dynamic_loading import find_class_by_name
+from runner.dynamic_loading import find_class_by_name, find_subclasses
 from runner.utils.python import PRIMITIVES
 from runner.utils.regex import get_first_value_for_matching_patterns
 
@@ -18,6 +18,12 @@ class ParameterHierarchy:
     requirements: Dict[str, "ParameterHierarchy"]
 
 
+@dataclasses.dataclass
+class CliParam:
+    type: type
+    multiple: bool
+    default: Any
+    name: str
 
 
 ParameterType = Dict[str, ParameterHierarchy]
@@ -81,7 +87,45 @@ def get_full_signature_parameters(
     return parameters
 
 
-def needed_parameters_for_creation(
+def cli_parameters_for_calling(
+    klass: type,
+    signature_name: Optional[str],
+    add_options_from_outside_packages: bool,
+    base_module: ModuleType,
+    initials: str = "",
+    logger: Logger = None,
+) -> List[CliParam]:
+    parameters = []
+    for param, value in get_full_signature_parameters(klass, None, signature_name).items():
+        if (
+            value.kind == inspect.Parameter.VAR_POSITIONAL
+            or value.kind == inspect.Parameter.VAR_KEYWORD
+            or param == "self"
+        ):
+            continue
+
+        full_param_path = f"{initials}{param}"
+        parameters.append(CliParam(str, False, None, f"{full_param_path}_type"))
+        param_type = value.annotation
+        if need_params_for_signature(param_type, add_options_from_outside_packages):
+            sub_classes = find_subclasses(base_module, param_type)
+            for sub_class in set(sub_classes + [param_type]):
+                klass_parameters = cli_parameters_for_calling(
+                    sub_class,
+                    None,
+                    add_options_from_outside_packages,
+                    base_module,
+                    f"{full_param_path}.",
+                    logger,
+                )
+                parameters += klass_parameters
+        elif param_type == List:
+            parameters.append(CliParam(param_type.__origin__, True, None, full_param_path))
+        else:
+            parameters.append(CliParam(param_type, False, None, full_param_path))
+    return parameters
+
+
 def needed_parameters_for_calling(
     klass: type,
     signature_name: Optional[str],
