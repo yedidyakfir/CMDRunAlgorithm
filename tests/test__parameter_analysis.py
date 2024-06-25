@@ -9,7 +9,7 @@ from runner.parameters_analysis import (
     need_params_for_signature,
     get_full_signature_parameters,
     needed_parameters_for_calling,
-    ParameterCLI,
+    ParameterHierarchy,
 )
 from tests import mock_module
 from tests.mock_module.a import MockA, MockB
@@ -96,44 +96,44 @@ def test__needed_parameters_for_creation__sanity():
     regex_config = {re.compile(r".*\.a$"): 12, re.compile(r"^f_type$"): MockA}
     signature_name = "func_name"
     expected = {
-        "a": ParameterCLI(
+        "a": ParameterHierarchy(
             type=MockB,
             value=None,
             requirements={
-                "b": ParameterCLI(
+                "b": ParameterHierarchy(
                     type=SGD,
                     value=None,
                     requirements={
-                        "dampening": ParameterCLI(type=int, value=0, requirements={}),
-                        "defaults": ParameterCLI(type=None, value=None, requirements={}),
-                        "differentiable": ParameterCLI(type=bool, value=False, requirements={}),
-                        "foreach": ParameterCLI(type=None, value=None, requirements={}),
-                        "lr": ParameterCLI(type=float, value=0.001, requirements={}),
-                        "maximize": ParameterCLI(type=bool, value=False, requirements={}),
-                        "momentum": ParameterCLI(type=int, value=0, requirements={}),
-                        "nesterov": ParameterCLI(type=bool, value=False, requirements={}),
-                        "params": ParameterCLI(type=None, value=None, requirements={}),
-                        "weight_decay": ParameterCLI(type=int, value=0, requirements={}),
+                        "dampening": ParameterHierarchy(type=int, value=0, requirements={}),
+                        "defaults": ParameterHierarchy(type=None, value=None, requirements={}),
+                        "differentiable": ParameterHierarchy(type=bool, value=False, requirements={}),
+                        "foreach": ParameterHierarchy(type=None, value=None, requirements={}),
+                        "lr": ParameterHierarchy(type=float, value=0.001, requirements={}),
+                        "maximize": ParameterHierarchy(type=bool, value=False, requirements={}),
+                        "momentum": ParameterHierarchy(type=int, value=0, requirements={}),
+                        "nesterov": ParameterHierarchy(type=bool, value=False, requirements={}),
+                        "params": ParameterHierarchy(type=None, value=None, requirements={}),
+                        "weight_decay": ParameterHierarchy(type=int, value=0, requirements={}),
                     },
                 ),
-                "a": ParameterCLI(type=int, value=None, requirements={}),
+                "a": ParameterHierarchy(type=int, value=None, requirements={}),
             },
         ),
-        "b": ParameterCLI(
+        "b": ParameterHierarchy(
             type=str,
             value="bbb",
             requirements={},
         ),
-        "c": ParameterCLI(type=float, value=0.1, requirements={}),
-        "f": ParameterCLI(
+        "c": ParameterHierarchy(type=float, value=0.1, requirements={}),
+        "f": ParameterHierarchy(
             type=MockA,
             value=None,
             requirements={
-                "a": ParameterCLI(type=int, value=12, requirements={}),
-                "aa": ParameterCLI(type=str, value=None, requirements={}),
+                "a": ParameterHierarchy(type=int, value=12, requirements={}),
+                "aa": ParameterHierarchy(type=str, value=None, requirements={}),
             },
         ),
-        "e": ParameterCLI(type=int, value=None, requirements={}),
+        "e": ParameterHierarchy(type=int, value=None, requirements={}),
     }
     logger = MagicMock()
 
