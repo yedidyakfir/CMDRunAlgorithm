@@ -3,7 +3,7 @@ import re
 from unittest.mock import MagicMock
 
 import pytest
-from torch.optim import Adam
+from torch.optim import Adam, SGD
 
 from runner.parameters_analysis import (
     need_params_for_signature,
@@ -88,7 +88,7 @@ def test__needed_parameters_for_creation__sanity():
     # Arrange
     key_value_config = {
         "a_type": "MockB",
-        "a": {"b": "BBBBB", "a": "None"},
+        "a": {"b_type": "torch.optim.SGD", "a": "None"},
         "b_type": str,
         "c": 0.1,
         "b": "bbb",
@@ -100,7 +100,22 @@ def test__needed_parameters_for_creation__sanity():
             type=MockB,
             value=None,
             requirements={
-                "b": ParameterCLI(type=str, value="BBBBB", requirements={}),
+                "b": ParameterCLI(
+                    type=SGD,
+                    value=None,
+                    requirements={
+                        "dampening": ParameterCLI(type=int, value=0, requirements={}),
+                        "defaults": ParameterCLI(type=None, value=None, requirements={}),
+                        "differentiable": ParameterCLI(type=bool, value=False, requirements={}),
+                        "foreach": ParameterCLI(type=None, value=None, requirements={}),
+                        "lr": ParameterCLI(type=float, value=0.001, requirements={}),
+                        "maximize": ParameterCLI(type=bool, value=False, requirements={}),
+                        "momentum": ParameterCLI(type=int, value=0, requirements={}),
+                        "nesterov": ParameterCLI(type=bool, value=False, requirements={}),
+                        "params": ParameterCLI(type=None, value=None, requirements={}),
+                        "weight_decay": ParameterCLI(type=int, value=0, requirements={}),
+                    },
+                ),
                 "a": ParameterCLI(type=int, value=None, requirements={}),
             },
         ),

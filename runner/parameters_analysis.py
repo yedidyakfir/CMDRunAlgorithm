@@ -13,7 +13,7 @@ from runner.utils.regex import get_first_value_for_matching_patterns
 
 @dataclasses.dataclass
 class ParameterCLI:
-    type: type
+    type: type  # This is needed only for creating the class, We need to understand what to do with typing module
     value: Any
     requirements: Dict[str, "ParameterCLI"]
 
@@ -32,6 +32,14 @@ def create_param_type(module: ModuleType, param_type: Any):
     else:
         class_type = param_type
     return class_type
+
+
+def extract_type_from_annotation(annotation):
+    if annotation == inspect.Parameter.empty:
+        return None
+    if hasattr(annotation, "__module__") and annotation.__module__ == "typing":
+        return None
+    return annotation
 
 
 def need_params_for_signature(obj: Any, add_options_from_outside_packages: bool) -> bool:
@@ -91,18 +99,18 @@ def needed_parameters_for_calling(
             or param == "self"
         ):
             continue
-        param_type_col_name = f"{initials}{param}_type"
+        param_type_name = f"{param}_type"
+        param_type_rex_name = f"{initials}{param_type_name}"
         param_type = get_first_value_for_matching_patterns(
-            regex_config, param_type_col_name, logger
+            regex_config, param_type_rex_name, logger
         )
         default_type_from_secondary_option = (
-            key_value_config.get(param_type_col_name)
+            key_value_config.get(param_type_name)
             if isinstance(key_value_config, dict)
             else None
         )
-        default_type_from_secondary_option = (
-            default_type_from_secondary_option or value.annotation
-        )
+        annotation = extract_type_from_annotation(value.annotation)
+        default_type_from_secondary_option = default_type_from_secondary_option or annotation
         param_type = param_type or default_type_from_secondary_option
         param_type = create_param_type(base_module, param_type)
         if key_value_config.get(param) == "None":
@@ -133,17 +141,20 @@ def needed_parameters_for_calling(
                 f"Parameter {initials}{param} set to {matching_rules_values} from a rule"
             )
         elif value.default == inspect.Parameter.empty:
-            final_parameter = ParameterCLI(value.annotation, None, {})
+            final_parameter = ParameterCLI(annotation, None, {})
             logger.info(
                 f"Parameter {initials}{param} has no default value, set as {value.annotation}"
             )
         else:
-            final_parameter = ParameterCLI(type(value.default), value.default, {})
+            final_parameter = ParameterCLI(
+                type(value.default) if value.default is not None else None, value.default, {}
+            )
             logger.info(
                 f"Parameter {initials}{param} set to {value.default} from the signature"
             )
         if (
             final_parameter
+            and final_parameter.type
             and not isinstance(final_parameter.value, final_parameter.type)
             and final_parameter.value is not None
         ):
