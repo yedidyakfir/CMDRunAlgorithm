@@ -1,9 +1,19 @@
 import abc
 from typing import List
 
+from torch.nn import Module, Linear
 from torch.optim import SGD
 
 from tests.mock_module.a import MockB, MockA
+
+
+class BasicNet(Module):
+    def __init__(self):
+        super().__init__()
+        self.linear = Linear(10, 10)
+
+    def forward(self, x):
+        return self.linear(x)
 
 
 class MockC(MockB):
