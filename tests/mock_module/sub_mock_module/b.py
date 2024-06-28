@@ -34,3 +34,13 @@ class MockG:
 class MockF:
     def func_name(self, opt: List[SGD]):
         pass
+
+
+class MockH:
+    def __init__(self, opt: SGD, eps: List[int], module: BasicNet):
+        self.opt = opt
+        self.eps = eps
+        self.module = module
+
+    def __eq__(self, other):
+        return self.opt == other.opt and self.eps == other.eps and self.module == other.module

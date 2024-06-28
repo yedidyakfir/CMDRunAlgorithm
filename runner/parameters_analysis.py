@@ -17,6 +17,7 @@ class ParameterHierarchy:
     type: type  # This is needed only for creating the class, We need to understand what to do with typing module
     value: Any
     requirements: Dict[str, "ParameterHierarchy"]
+    path_in_tree: str = ""
 
 
 @dataclasses.dataclass
