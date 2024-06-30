@@ -283,18 +283,6 @@ def needed_parameters_for_calling(
             )
         else:
             final_parameter = None
-        # elif value.default == inspect.Parameter.empty:
-        #     final_parameter = ParameterNode(annotation, None, {})
-        #     logger.info(
-        #         f"Parameter {full_param_path} has no default value, set as {value.annotation}"
-        #     )
-        # else:
-        #     final_parameter = ParameterNode(
-        #         type(value.default) if value.default is not None else None, value.default, {}
-        #     )
-        #     logger.info(
-        #         f"Parameter {full_param_path} set to {value.default} from the signature"
-        #     )
         if (
             final_parameter
             and final_parameter.type
