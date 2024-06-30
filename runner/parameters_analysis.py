@@ -8,6 +8,7 @@ from types import ModuleType
 from typing import Dict, Pattern, Any, Optional, List
 
 from runner.dynamic_loading import find_class_by_name, find_subclasses
+from runner.object_creation import ParameterGraph, ParameterNode
 from runner.utils.python import PRIMITIVES, notation_belong_to_typing
 from runner.utils.regex import get_first_value_for_matching_patterns
 
@@ -29,6 +30,10 @@ class CliParam:
 
 
 ParameterType = Dict[str, ParameterHierarchy]
+
+
+def create_type_parameter(parameter_name: str):
+    return f"{parameter_name}_type"
 
 
 def create_param_type(module: ModuleType, param_type: Any):
@@ -107,7 +112,7 @@ def cli_parameters_for_calling(
             continue
 
         full_param_path = f"{initials}{param}"
-        parameters.append(CliParam(str, False, None, f"{full_param_path}_type"))
+        parameters.append(CliParam(str, False, None, create_type_parameter(full_param_path)))
         param_type = value.annotation
         if need_params_for_signature(param_type, add_options_from_outside_packages):
             sub_classes = find_subclasses(base_module, param_type)
@@ -142,7 +147,8 @@ def needed_parameters_for_calling(
     add_options_from_outside_packages: bool,
     initials: str = "",
     logger: Logger = None,
-) -> dict:
+) -> ParameterGraph:
+    # TODO - need to split between key value and rules from parameters and from default. To create hierarchy of who is the winner
     logger = logger or logging.getLogger(__name__)
     parameters = {}
     for param, value in get_full_signature_parameters(klass, None, signature_name).items():
@@ -152,7 +158,8 @@ def needed_parameters_for_calling(
             or param == "self"
         ):
             continue
-        param_type_name = f"{param}_type"
+        full_param_path = f"{initials}{param}"
+        param_type_name = create_type_parameter(param)
         param_type_rex_name = f"{initials}{param_type_name}"
         param_type = get_first_value_for_matching_patterns(
             regex_config, param_type_rex_name, logger
@@ -167,7 +174,7 @@ def needed_parameters_for_calling(
         param_type = param_type or default_type_from_secondary_option
         param_type = create_param_type(base_module, param_type)
         if key_value_config.get(param) == "None":
-            final_parameter = ParameterHierarchy(param_type, None, {})
+            final_parameter = ParameterNode(param_type, None, {})
         elif need_params_for_signature(param_type, add_options_from_outside_packages):
             klass_parameters = needed_parameters_for_calling(
                 param_type,
@@ -176,34 +183,42 @@ def needed_parameters_for_calling(
                 regex_config,
                 base_module,
                 add_options_from_outside_packages,
-                f"{initials}{param}.",
+                f"{full_param_path}.",
                 logger,
             )
-            final_parameter = ParameterHierarchy(param_type, None, klass_parameters)
-            logger.info(f"Parameter {initials}{param} is a {param_type}")
+            parameters.update(klass_parameters)
+            final_parameter = ParameterNode(
+                param_type,
+                None,
+                {
+                    f"{full_param_path}.{sub_param_name}": sub_param_name
+                    for sub_param_name, node in klass_parameters.items()
+                },
+            )
+            logger.info(f"Parameter {full_param_path} is a {param_type}")
         elif key_value_config and param in key_value_config:
-            final_parameter = ParameterHierarchy(param_type, key_value_config.get(param), {})
+            final_parameter = ParameterNode(param_type, key_value_config.get(param), {})
             logger.info(
-                f"Parameter {initials}{param} set to {key_value_config.get(param)} from a config"
+                f"Parameter {full_param_path} set to {key_value_config.get(param)} from a config"
             )
         elif matching_rules_values := get_first_value_for_matching_patterns(
-            regex_config, f"{initials}{param}", logger
+            regex_config, f"{full_param_path}", logger
         ):
-            final_parameter = ParameterHierarchy(param_type, matching_rules_values, {})
+            final_parameter = ParameterNode(param_type, matching_rules_values, {})
             logger.info(
-                f"Parameter {initials}{param} set to {matching_rules_values} from a rule"
+                f"Parameter {full_param_path} set to {matching_rules_values} from a rule"
             )
         elif value.default == inspect.Parameter.empty:
-            final_parameter = ParameterHierarchy(annotation, None, {})
+            final_parameter = ParameterNode(annotation, None, {})
             logger.info(
-                f"Parameter {initials}{param} has no default value, set as {value.annotation}"
+                f"Parameter {full_param_path} has no default value, set as {value.annotation}"
             )
         else:
-            final_parameter = ParameterHierarchy(
+            final_parameter = ParameterNode(
                 type(value.default) if value.default is not None else None, value.default, {}
             )
             logger.info(
-                f"Parameter {initials}{param} set to {value.default} from the signature"
+                f"Parameter {full_param_path} set to {value.default} from the signature"
             )
         if (
             final_parameter
@@ -212,7 +227,7 @@ def needed_parameters_for_calling(
             and final_parameter.value is not None
         ):
             logger.warning(
-                f"Parameter {initials}{param} has a default value that is not of the same type as the parameter"
+                f"Parameter {full_param_path} has a default value that is not of the same type as the parameter"
             )
-        parameters[param] = final_parameter
+        parameters[full_param_path] = final_parameter
     return parameters
