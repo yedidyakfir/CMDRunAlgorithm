@@ -179,7 +179,9 @@ def cli_parameters_for_calling(
 def needed_parameters_for_calling(
     klass: type,
     signature_name: Optional[str],
+    key_value_config_default: dict,
     key_value_config: dict,
+    regex_config_default: Dict[Pattern, Any],
     regex_config: Dict[Pattern, Any],
     base_module: ModuleType,
     add_options_from_outside_packages: bool,
@@ -187,6 +189,9 @@ def needed_parameters_for_calling(
     logger: Logger = None,
 ) -> ParameterGraph:
     # TODO - need to split between key value and rules from parameters and from default. To create hierarchy of who is the winner
+    # TODO - how to set creator (for sgd for example) - param called _param_creator
+    # TODO - how to set additional graph connections - param called connected_params
+
     logger = logger or logging.getLogger(__name__)
     parameters = {}
     for param, value in get_full_signature_parameters(klass, None, signature_name).items():
@@ -199,25 +204,43 @@ def needed_parameters_for_calling(
         full_param_path = f"{initials}{param}"
         param_type_name = create_type_parameter(param)
         param_type_rex_name = f"{initials}{param_type_name}"
+
+        # Find type of the param
         param_type = get_first_value_for_matching_patterns(
             regex_config, param_type_rex_name, logger
+        )
+        param_type = param_type or get_first_value_for_matching_patterns(
+            regex_config_default, param_type_rex_name, logger
         )
         default_type_from_secondary_option = (
             key_value_config.get(param_type_name)
             if isinstance(key_value_config, dict)
+            else None
+        ) or (
+            key_value_config_default.get(param_type_name)
+            if isinstance(key_value_config_default, dict)
             else None
         )
         annotation = extract_type_from_annotation(value.annotation)
         default_type_from_secondary_option = default_type_from_secondary_option or annotation
         param_type = param_type or default_type_from_secondary_option
         param_type = create_param_type(base_module, param_type)
+
+        # Create the node for the parameter
         if key_value_config.get(param) == "None":
+            final_parameter = ParameterNode(param_type, None, {})
+        elif (
+            key_value_config_default.get(param) == "None"
+            and key_value_config.get(param) is None
+        ):
             final_parameter = ParameterNode(param_type, None, {})
         elif need_params_for_signature(param_type, add_options_from_outside_packages):
             klass_parameters = needed_parameters_for_calling(
                 param_type,
                 None,
+                key_value_config_default.get(param, {}),
                 key_value_config.get(param, {}),
+                regex_config_default,
                 regex_config,
                 base_module,
                 add_options_from_outside_packages,
@@ -239,12 +262,24 @@ def needed_parameters_for_calling(
             logger.info(
                 f"Parameter {full_param_path} set to {key_value_config.get(param)} from a config"
             )
-        elif matching_rules_values := get_first_value_for_matching_patterns(
-            regex_config, f"{full_param_path}", logger
+        elif matching_rules_values := (
+            get_first_value_for_matching_patterns(regex_config, full_param_path, logger)
         ):
             final_parameter = ParameterNode(param_type, matching_rules_values, {})
             logger.info(
                 f"Parameter {full_param_path} set to {matching_rules_values} from a rule"
+            )
+        elif key_value_config_default and param in key_value_config_default:
+            final_parameter = ParameterNode(param_type, key_value_config_default.get(param), {})
+            logger.info(
+                f"Parameter {full_param_path} set to {key_value_config_default.get(param)} from a default config"
+            )
+        elif matching_rules_values := get_first_value_for_matching_patterns(
+            regex_config_default, full_param_path, logger
+        ):
+            final_parameter = ParameterNode(param_type, matching_rules_values, {})
+            logger.info(
+                f"Parameter {full_param_path} set to {matching_rules_values} from a default rule"
             )
         elif value.default == inspect.Parameter.empty:
             final_parameter = ParameterNode(annotation, None, {})

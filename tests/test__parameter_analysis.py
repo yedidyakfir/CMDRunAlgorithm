@@ -106,7 +106,15 @@ def test__needed_parameters_for_creation__sanity():
 
     # Act
     result = needed_parameters_for_calling(
-        MockC, signature_name, key_value_config, regex_config, mock_module, True, logger=logger
+        MockC,
+        signature_name,
+        {},
+        key_value_config,
+        {},
+        regex_config,
+        mock_module,
+        True,
+        logger=logger,
     )
 
     # Assert
@@ -122,7 +130,7 @@ def test__needed_parameters_for_creation__warning_for_unmatching_value_and_type(
 
     # Act
     needed_parameters_for_calling(
-        MockA, None, key_value_config, regex_config, mock_module, True, logger=logger
+        MockA, None, {}, key_value_config, {}, regex_config, mock_module, True, logger=logger
     )
 
     # Assert
@@ -136,7 +144,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
 
     # Act
     needed_parameters_for_calling(
-        MockC, "func_name", {}, regex_config, mock_module, True, logger=logger
+        MockC, "func_name", {}, {}, {}, regex_config, mock_module, True, logger=logger
     )
 
     # Assert
