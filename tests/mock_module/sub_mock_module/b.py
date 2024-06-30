@@ -54,3 +54,7 @@ class MockH:
 
     def __eq__(self, other):
         return self.opt == other.opt and self.eps == other.eps and self.module == other.module
+
+    def func(self, t: int):
+        pass
+
