@@ -48,13 +48,13 @@ def create_objects(graph: ParameterGraph):
     for node_key in order:
         node = graph[node_key]
         dependencies = {neighbor: created_objects[neighbor] for neighbor in node.edges}
-        created_objects[node_key] = create_object(node, dependencies)
+        creator = node.creator or create_object
+        created_objects[node_key] = creator(node, dependencies)
 
     return created_objects
 
 
 def create_object(node: ParameterNode, dependencies: Dict[str, Any]):
-    creator = node.creator or node.type
-    return node.value or creator(
+    return node.value or node.type(
         **{param_name: dependencies[edge] for edge, param_name in node.edges.items()}
     )

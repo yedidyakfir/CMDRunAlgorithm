@@ -7,8 +7,9 @@ from tests.mock_module.sub_mock_module.b import MockH, BasicNet
 
 def test__create_objects__circular_graph():
     # Arrange
-    def create_sgd(module):
-        return SGD(module.parameters())
+    def create_opt(node, dependencies):
+        module = dependencies.pop("runner.module")
+        return node.type(module.parameters(), **dependencies)
 
     eps = [1, 2, 3]
     graph = {
@@ -18,7 +19,7 @@ def test__create_objects__circular_graph():
             edges={"runner.opt": "opt", "runner.eps": "eps", "runner.module": "module"},
         ),
         "runner.opt": ParameterNode(
-            type=SGD, value=None, edges={"runner.module": "module"}, creator=create_sgd
+            type=SGD, value=None, edges={"runner.module": "module"}, creator=create_opt
         ),
         "runner.eps": ParameterNode(type=list, value=eps, edges={}),
         "runner.module": ParameterNode(type=BasicNet, value=None, edges={}),
