@@ -29,7 +29,7 @@ class MockE(MockA):
     def start(self):
         pass
 
-    def func_name(self, dd: int):
+    def func_name(self, dd: int, **kwargs):
         pass
 
 

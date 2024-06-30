@@ -9,7 +9,7 @@ class MockBase(ABC):
 
 
 class MockA(MockBase, ABC):
-    def __init__(self, a: int, aa: str):
+    def __init__(self, a: int, aa: str = "aa"):
         pass
 
 

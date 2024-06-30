@@ -75,8 +75,28 @@ def get_full_signature_parameters(
     base_klass: Optional[type],
     signature_name: str = None,
     add_options_from_outside_packages: bool = True,
+    needs_args: bool = True,
+    needs_kwargs: bool = True,
 ) -> Dict[str, inspect.Parameter]:
+    if signature_name and not hasattr(klass, signature_name):
+        return {}
+    func = getattr(klass, signature_name) if signature_name else klass
+
     parameters = {}
+    needs_base_args = any(
+        [
+            parameter_type
+            for parameter_type in inspect.signature(func).parameters.values()
+            if parameter_type.kind == inspect.Parameter.VAR_POSITIONAL
+        ]
+    )
+    needs_base_kwargs = any(
+        [
+            parameter_type
+            for parameter_type in inspect.signature(func).parameters.values()
+            if parameter_type.kind == inspect.Parameter.VAR_KEYWORD
+        ]
+    )
     for parent_class in getattr(klass, "__bases__", []):
         needs_parent_class = (
             issubclass(parent_class, base_klass)
@@ -85,12 +105,30 @@ def get_full_signature_parameters(
         )
         if needs_parent_class:
             parameters.update(
-                get_full_signature_parameters(parent_class, base_klass, signature_name)
+                get_full_signature_parameters(
+                    parent_class,
+                    base_klass,
+                    signature_name,
+                    needs_args=needs_base_args,
+                    needs_kwargs=needs_base_kwargs,
+                )
             )
-    if signature_name and not hasattr(klass, signature_name):
-        return {}
-    func = getattr(klass, signature_name) if signature_name else klass
-    parameters.update(inspect.signature(func).parameters)
+    if needs_args:
+        parameters.update(
+            {
+                k: v
+                for k, v in inspect.signature(func).parameters.items()
+                if v.default == inspect.Parameter.empty
+            }
+        )
+    if needs_kwargs:
+        parameters.update(
+            {
+                k: v
+                for k, v in inspect.signature(func).parameters.items()
+                if v.default != inspect.Parameter.empty
+            }
+        )
     return parameters
 
 

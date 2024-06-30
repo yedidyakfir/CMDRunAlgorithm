@@ -76,14 +76,18 @@ def test__get_full_signature_parameters__new_function():
 
 
 def test__get_full_signature_parameters__stops_at_class_with_no_signature_name():
+    # Arrange
+    expected = {
+        "dd": inspect.Parameter("dd", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int),
+        "self": inspect.Parameter("self", inspect.Parameter.POSITIONAL_OR_KEYWORD),
+        "kwargs": inspect.Parameter("kwargs", inspect.Parameter.VAR_KEYWORD),
+    }
+
     # Act
     results = get_full_signature_parameters(MockE, MockE, "func_name")
 
     # Assert
-    assert results == {
-        "dd": inspect.Parameter("dd", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int),
-        "self": inspect.Parameter("self", inspect.Parameter.POSITIONAL_OR_KEYWORD),
-    }
+    assert results == expected
 
 
 def test__needed_parameters_for_creation__sanity():
@@ -180,8 +184,6 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
             [
                 CliParam(type=str, multiple=False, default=None, name="opt_type"),
                 CliParam(type=str, multiple=False, default=None, name="opt.params_type"),
-                CliParam(type=str, multiple=False, default=None, name="opt.defaults_type"),
-                CliParam(type=str, multiple=False, default=None, name="opt.defaults"),
                 CliParam(type=str, multiple=False, default=None, name="opt.lr_type"),
                 CliParam(type=str, multiple=False, default=None, name="opt.momentum_type"),
                 CliParam(type=str, multiple=False, default=None, name="opt.dampening_type"),

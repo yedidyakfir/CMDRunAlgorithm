@@ -11,7 +11,6 @@ EXPECTED_GRAPH = {
             "a.a": "a",
             "a.b": "b",
             "a.b.dampening": "dampening",
-            "a.b.defaults": "defaults",
             "a.b.differentiable": "differentiable",
             "a.b.foreach": "foreach",
             "a.b.lr": "lr",
@@ -28,7 +27,6 @@ EXPECTED_GRAPH = {
         value=None,
         edges={
             "a.b.dampening": "dampening",
-            "a.b.defaults": "defaults",
             "a.b.differentiable": "differentiable",
             "a.b.foreach": "foreach",
             "a.b.lr": "lr",
@@ -40,7 +38,6 @@ EXPECTED_GRAPH = {
         },
     ),
     "a.b.dampening": ParameterNode(type=int, value=0, edges={}),
-    "a.b.defaults": ParameterNode(type=None, value=None, edges={}),
     "a.b.differentiable": ParameterNode(type=bool, value=False, edges={}),
     "a.b.foreach": ParameterNode(type=None, value=None, edges={}),
     "a.b.lr": ParameterNode(type=float, value=0.001, edges={}),
@@ -54,5 +51,5 @@ EXPECTED_GRAPH = {
     "e": ParameterNode(type=int, value=None, edges={}),
     "f": ParameterNode(type=MockA, value=None, edges={"f.a": "a", "f.aa": "aa"}),
     "f.a": ParameterNode(type=int, value=12, edges={}),
-    "f.aa": ParameterNode(type=str, value=None, edges={}),
+    "f.aa": ParameterNode(type=str, value="aa", edges={}),
 }
