@@ -3,8 +3,9 @@ import re
 from unittest.mock import MagicMock
 
 import pytest
-from torch.optim import Adam
+from torch.optim import Adam, SGD
 
+from runner.object_creation import ParameterNode
 from runner.parameters_analysis import (
     need_params_for_signature,
     get_full_signature_parameters,
@@ -119,6 +120,71 @@ def test__needed_parameters_for_creation__sanity():
 
     # Assert
     logger.warning.assert_not_called()
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    ["default_config", "config", "default_rules", "rules", "expected"],
+    [
+        [
+            {"a_type": "torch.optim.SGD"},
+            {"a_type": "MockB"},
+            {},
+            {},
+            {"a": ParameterNode(type=MockB, value=None, edges={})},
+        ],
+        [
+            {"b": 1},
+            {"b": 2},
+            {},
+            {},
+            {"b": ParameterNode(type=str, value=2, edges={})},
+        ],
+        [
+            {"b": 1},
+            {"c": 2},
+            {},
+            {},
+            {
+                "b": ParameterNode(type=str, value=1, edges={}),
+                "c": ParameterNode(type=float, value=2, edges={}),
+            },
+        ],
+        [
+            {},
+            {},
+            {re.compile(r"c$"): 12},
+            {re.compile(r"c$"): 11},
+            {"c": ParameterNode(type=float, value=11, edges={})},
+        ],
+        [
+            {},
+            {},
+            {re.compile(r"c_type$"): MockA},
+            {re.compile(r"c_type$"): "torch.optim.SGD"},
+            {"c": ParameterNode(type=SGD, value=None, edges={})},
+        ],
+        [
+            {},
+            {},
+            {re.compile(r"a_type$"): MockA},
+            {re.compile(r"c$"): "SGD"},
+            {
+                "a": ParameterNode(type=MockA, value=None, edges={}),
+                "c": ParameterNode(type=float, value="SGD", edges={}),
+            },
+        ],
+    ],
+)
+def test__needed_parameters_for_creation__check_rules_configs_and_default(
+    default_config, config, default_rules, rules, expected
+):
+    # Act
+    result = needed_parameters_for_calling(
+        MockC, None, default_config, config, default_rules, rules, mock_module, True
+    )
+
+    # Assert
     assert result == expected
 
 
