@@ -55,6 +55,12 @@ def create_objects(graph: ParameterGraph):
 
 
 def create_object(node: ParameterNode, dependencies: Dict[str, Any]):
+    if node.value is None and node.type is None:
+        return None
     return node.value or node.type(
         **{param_name: dependencies[edge] for edge, param_name in node.edges.items()}
     )
+
+
+def only_creation_relevant_parameters_from_created(created: Dict[str, Any]):
+    return {key: value for key, value in created.items() if "." not in key}

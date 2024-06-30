@@ -1,20 +1,19 @@
 import inspect
 import re
-import typing
 from unittest.mock import MagicMock
 
 import pytest
-from torch.optim import Adam, SGD
+from torch.optim import Adam
 
 from runner.parameters_analysis import (
     need_params_for_signature,
     get_full_signature_parameters,
     needed_parameters_for_calling,
-    ParameterHierarchy,
     cli_parameters_for_calling,
     CliParam,
 )
 from tests import mock_module
+from tests.conftest import EXPECTED_GRAPH
 from tests.mock_module.a import MockA, MockB
 from tests.mock_module.sub_mock_module.b import MockC, MockE, MockG, MockF
 
@@ -98,48 +97,7 @@ def test__needed_parameters_for_creation__sanity():
     }
     regex_config = {re.compile(r".*\.a$"): 12, re.compile(r"^f_type$"): MockA}
     signature_name = "func_name"
-    expected = {
-        "a": ParameterHierarchy(
-            type=MockB,
-            value=None,
-            requirements={
-                "b": ParameterHierarchy(
-                    type=SGD,
-                    value=None,
-                    requirements={
-                        "dampening": ParameterHierarchy(type=int, value=0, requirements={}),
-                        "defaults": ParameterHierarchy(type=None, value=None, requirements={}),
-                        "differentiable": ParameterHierarchy(
-                            type=bool, value=False, requirements={}
-                        ),
-                        "foreach": ParameterHierarchy(type=None, value=None, requirements={}),
-                        "lr": ParameterHierarchy(type=float, value=0.001, requirements={}),
-                        "maximize": ParameterHierarchy(type=bool, value=False, requirements={}),
-                        "momentum": ParameterHierarchy(type=int, value=0, requirements={}),
-                        "nesterov": ParameterHierarchy(type=bool, value=False, requirements={}),
-                        "params": ParameterHierarchy(type=None, value=None, requirements={}),
-                        "weight_decay": ParameterHierarchy(type=int, value=0, requirements={}),
-                    },
-                ),
-                "a": ParameterHierarchy(type=int, value=None, requirements={}),
-            },
-        ),
-        "b": ParameterHierarchy(
-            type=str,
-            value="bbb",
-            requirements={},
-        ),
-        "c": ParameterHierarchy(type=float, value=0.1, requirements={}),
-        "f": ParameterHierarchy(
-            type=MockA,
-            value=None,
-            requirements={
-                "a": ParameterHierarchy(type=int, value=12, requirements={}),
-                "aa": ParameterHierarchy(type=str, value=None, requirements={}),
-            },
-        ),
-        "e": ParameterHierarchy(type=int, value=None, requirements={}),
-    }
+    expected = EXPECTED_GRAPH
     logger = MagicMock()
 
     # Act

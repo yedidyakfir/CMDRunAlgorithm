@@ -191,8 +191,8 @@ def needed_parameters_for_calling(
                 param_type,
                 None,
                 {
-                    f"{full_param_path}.{sub_param_name}": sub_param_name
-                    for sub_param_name, node in klass_parameters.items()
+                    full_sub_param_name: full_sub_param_name.split(".")[-1]
+                    for full_sub_param_name, node in klass_parameters.items()
                 },
             )
             logger.info(f"Parameter {full_param_path} is a {param_type}")
