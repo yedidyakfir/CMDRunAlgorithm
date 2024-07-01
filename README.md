@@ -7,3 +7,7 @@ Notes:
 - If you use typing types, you'll have to specify the type using _type param. This feature is in development.
 `python run class --param_type int --param 1`
 - List param can only by used by primitive types currently
+
+
+Future features:
+- Create a nested structure to analyze the correct data type. Supporting nested types (Optional, Union, List etc)
