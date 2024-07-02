@@ -221,9 +221,6 @@ def needed_parameters_for_calling(
     initials: str = "",
     logger: Logger = None,
 ) -> ParameterGraph:
-    # TODO - how to set creator (for sgd for example) - param called _param_creator
-    # TODO - how to set additional graph connections - param called connected_params
-
     logger = logger or logging.getLogger(__name__)
     parameters = {}
     for param, value in get_full_signature_parameters(klass, None, signature_name).items():
