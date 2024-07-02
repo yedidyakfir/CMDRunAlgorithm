@@ -7,7 +7,7 @@ from tests.mock_module.a import MockB, MockA
 from tests.mock_module.sub_mock_module.b import MockH, BasicNet
 
 
-def test__create_objects__circular_graph():
+def test__create_objects__non_hierarchical_graph():
     # Arrange
     eps = [1, 2, 3]
     graph = {
