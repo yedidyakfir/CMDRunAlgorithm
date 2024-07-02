@@ -14,9 +14,10 @@ from runner.parameters_analysis import (
     CliParam,
 )
 from tests import mock_module
-from tests.conftest import EXPECTED_GRAPH
+from tests.conftest import EXPECTED_GRAPH, create_opt
 from tests.mock_module.a import MockA, MockB
 from tests.mock_module.sub_mock_module.b import MockC, MockE, MockG, MockF
+from tests.mock_module.utils import func
 
 
 @pytest.mark.parametrize(
@@ -152,6 +153,42 @@ def test__needed_parameters_for_creation__sanity():
         ],
         [
             {},
+            {"b": 1, "__b_connected_params": {"b.c": "c"}},
+            {},
+            {},
+            {
+                "b": ParameterNode(type=str, value=1, edges={"b.c": "c"}),
+            },
+        ],
+        [
+            {"c_type": "torch.optim.SGD", "__c_connected_params": {"b.c": "c"}},
+            {},
+            {},
+            {},
+            {
+                "c": ParameterNode(type=SGD, value=None, edges={"b.c": "c"}),
+            },
+        ],
+        [
+            {"c_type": "torch.optim.SGD", "__c_creator": "func"},
+            {},
+            {},
+            {},
+            {
+                "c": ParameterNode(type=SGD, value=None, edges={}, creator=func),
+            },
+        ],
+        [
+            {},
+            {"c_type": "torch.optim.SGD", "__c_creator": "tests.mock_module.utils.func"},
+            {},
+            {},
+            {
+                "c": ParameterNode(type=SGD, value=None, edges={}, creator=func),
+            },
+        ],
+        [
+            {},
             {},
             {re.compile(r"c$"): 12},
             {re.compile(r"c$"): 11},
@@ -172,6 +209,39 @@ def test__needed_parameters_for_creation__sanity():
             {
                 "a": ParameterNode(type=MockA, value=None, edges={}),
                 "c": ParameterNode(type=float, value="SGD", edges={}),
+            },
+        ],
+        [
+            {},
+            {},
+            {re.compile(r"b$"): 1, re.compile(r"__b_connected_params$"): {"b.c": "c"}},
+            {},
+            {
+                "b": ParameterNode(type=str, value=1, edges={"b.c": "c"}),
+            },
+        ],
+        [
+            {},
+            {},
+            {
+                re.compile("c_type"): "torch.optim.SGD",
+                re.compile("__c_connected_params"): {"b.c": "c"},
+            },
+            {},
+            {
+                "c": ParameterNode(type=SGD, value=None, edges={"b.c": "c"}),
+            },
+        ],
+        [
+            {},
+            {},
+            {},
+            {
+                re.compile("c_type"): "torch.optim.SGD",
+                re.compile("__c_creator"): "tests.mock_module.utils.func",
+            },
+            {
+                "c": ParameterNode(type=SGD, value=None, edges={}, creator=func),
             },
         ],
     ],

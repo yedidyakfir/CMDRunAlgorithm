@@ -12,3 +12,8 @@ EXPECTED_GRAPH = {
     "f": ParameterNode(type=MockA, value=None, edges={"f.a": "a"}),
     "f.a": ParameterNode(type=int, value=12, edges={}),
 }
+
+
+def create_opt(node, dependencies):
+    module = dependencies.pop("runner.module")
+    return node.type(module.parameters(), **dependencies)

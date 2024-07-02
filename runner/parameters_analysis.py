@@ -44,14 +44,14 @@ def create_param_connection_name(parameter_name: str):
     return f"__{parameter_name}_connected_params"
 
 
-def create_param_type(module: ModuleType, param_type: Any):
+def create_type_from_name(module: ModuleType, param_type: Any, only_class: bool = True):
     if isinstance(param_type, str):
         if "." in param_type:
             param_type_path = param_type.split(".")
             class_name, module_name = param_type_path[-1], ".".join(param_type_path[:-1])
             class_type = getattr(importlib.import_module(module_name), class_name)
         else:
-            class_type = find_class_by_name(module, param_type)
+            class_type = find_class_by_name(module, param_type, only_class)
     else:
         class_type = param_type
     return class_type
@@ -247,7 +247,7 @@ def needed_parameters_for_calling(
         )
         annotation = extract_type_from_annotation(value.annotation)
         param_type = param_type or annotation
-        param_type = create_param_type(base_module, param_type)
+        param_type = create_type_from_name(base_module, param_type)
 
         creator_name = create_param_creator_name(full_param_path)
         creator = extract_value_from_settings(
@@ -259,6 +259,7 @@ def needed_parameters_for_calling(
             key_value_config_default,
             logger,
         )
+        creator = create_type_from_name(base_module, creator, False) if creator else None
         connected_params_name = create_param_connection_name(full_param_path)
         connected_params = extract_value_from_settings(
             connected_params_name,

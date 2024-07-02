@@ -2,17 +2,13 @@ import torch
 from torch.optim import SGD
 
 from runner.object_creation import create_objects, ParameterNode
-from tests.conftest import EXPECTED_GRAPH
+from tests.conftest import EXPECTED_GRAPH, create_opt
 from tests.mock_module.a import MockB, MockA
 from tests.mock_module.sub_mock_module.b import MockH, BasicNet
 
 
 def test__create_objects__circular_graph():
     # Arrange
-    def create_opt(node, dependencies):
-        module = dependencies.pop("runner.module")
-        return node.type(module.parameters(), **dependencies)
-
     eps = [1, 2, 3]
     graph = {
         "runner": ParameterNode(
