@@ -159,6 +159,8 @@ def cli_parameters_for_calling(
 
         full_param_path = f"{initials}{param}"
         parameters.append(CliParam(str, False, None, create_type_parameter(full_param_path)))
+        parameters.append(CliParam(str, True, None, create_param_connection_name(full_param_path)))
+        parameters.append(CliParam(str, False, None, create_param_creator_name(full_param_path)))
         param_type = value.annotation
         if need_params_for_signature(param_type, add_options_from_outside_packages):
             sub_classes = find_subclasses(base_module, param_type)
@@ -221,6 +223,7 @@ def needed_parameters_for_calling(
     initials: str = "",
     logger: Logger = None,
 ) -> ParameterGraph:
+    # TODO - need to think about a nested way to create parameter graph type, how to analyze the type
     logger = logger or logging.getLogger(__name__)
     parameters = {}
     for param, value in get_full_signature_parameters(klass, None, signature_name).items():
