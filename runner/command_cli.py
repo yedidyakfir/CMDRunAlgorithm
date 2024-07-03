@@ -55,7 +55,7 @@ class RunCLIAlgorithm(MultiCommand):
 
             params = [
                 Option(
-                    ["--" + param.name],
+                    ["--" + "-".join(param.name.split("."))],
                     type=param.type,
                     multiple=param.multiple,
                     default=param.default,
