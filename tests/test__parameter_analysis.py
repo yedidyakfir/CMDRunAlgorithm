@@ -352,11 +352,13 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                     type=str, multiple=True, default=None, name="__opt.params_connected_params"
                 ),
                 CliParam(type=str, multiple=False, default=None, name="__opt.params_creator"),
+                CliParam(type=None, multiple=False, default=None, name="opt.params"),
                 CliParam(type=str, multiple=False, default=None, name="opt.lr_type"),
                 CliParam(
                     type=str, multiple=True, default=None, name="__opt.lr_connected_params"
                 ),
                 CliParam(type=str, multiple=False, default=None, name="__opt.lr_creator"),
+                CliParam(type=None, multiple=False, default=None, name="opt.lr"),
                 CliParam(type=str, multiple=False, default=None, name="opt.momentum_type"),
                 CliParam(
                     type=str,
@@ -365,6 +367,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                     name="__opt.momentum_connected_params",
                 ),
                 CliParam(type=str, multiple=False, default=None, name="__opt.momentum_creator"),
+                CliParam(type=None, multiple=False, default=None, name="opt.momentum"),
                 CliParam(type=str, multiple=False, default=None, name="opt.dampening_type"),
                 CliParam(
                     type=str,
@@ -375,6 +378,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                 CliParam(
                     type=str, multiple=False, default=None, name="__opt.dampening_creator"
                 ),
+                CliParam(type=None, multiple=False, default=None, name="opt.dampening"),
                 CliParam(type=str, multiple=False, default=None, name="opt.weight_decay_type"),
                 CliParam(
                     type=str,
@@ -385,6 +389,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                 CliParam(
                     type=str, multiple=False, default=None, name="__opt.weight_decay_creator"
                 ),
+                CliParam(type=None, multiple=False, default=None, name="opt.weight_decay"),
                 CliParam(type=str, multiple=False, default=None, name="opt.nesterov_type"),
                 CliParam(
                     type=str,
@@ -393,6 +398,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                     name="__opt.nesterov_connected_params",
                 ),
                 CliParam(type=str, multiple=False, default=None, name="__opt.nesterov_creator"),
+                CliParam(type=None, multiple=False, default=None, name="opt.nesterov"),
                 CliParam(type=str, multiple=False, default=None, name="opt.maximize_type"),
                 CliParam(
                     type=str,
@@ -407,7 +413,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                     type=str, multiple=True, default=None, name="__opt.foreach_connected_params"
                 ),
                 CliParam(type=str, multiple=False, default=None, name="__opt.foreach_creator"),
-                CliParam(type=str, multiple=False, default=None, name="opt.foreach"),
+                CliParam(type=None, multiple=False, default=None, name="opt.foreach"),
                 CliParam(
                     type=str, multiple=False, default=None, name="opt.differentiable_type"
                 ),
@@ -424,7 +430,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                 CliParam(type=str, multiple=False, default=None, name="eps_type"),
                 CliParam(type=str, multiple=True, default=None, name="__eps_connected_params"),
                 CliParam(type=str, multiple=False, default=None, name="__eps_creator"),
-                CliParam(type=str, multiple=True, default=None, name="eps"),
+                CliParam(type=None, multiple=False, default=None, name="eps"),
             ],
         ],
         [
@@ -436,6 +442,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                 CliParam(type=str, multiple=True, default=None, name="__opt_connected_params"),
                 CliParam(type=str, multiple=False, default=None, name="__opt_creator"),
                 CliParam(type=str, multiple=False, default=None, name="opt"),
+                CliParam(type=None, multiple=False, default=None, name='opt')
             ],
         ],
     ],
