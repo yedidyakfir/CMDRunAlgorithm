@@ -68,6 +68,10 @@ def extract_type_from_annotation(annotation):
 def need_params_for_signature(obj: Any, add_options_from_outside_packages: bool) -> bool:
     if not inspect.isclass(obj) or obj in PRIMITIVES:
         return False
+    try:
+        inspect.signature(obj)
+    except ValueError:
+        return False
     module = inspect.getmodule(obj).__name__
     current_module = inspect.currentframe().f_globals.get("__name__")
     if (
@@ -91,6 +95,9 @@ def get_full_signature_parameters(
     func = getattr(klass, signature_name) if signature_name else klass
 
     parameters = {}
+    if "Tensor" in func.__name__:
+        import pdb
+        pdb.set_trace()
     needs_base_args = any(
         [
             parameter_type
