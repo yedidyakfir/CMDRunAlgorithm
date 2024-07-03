@@ -95,9 +95,6 @@ def get_full_signature_parameters(
     func = getattr(klass, signature_name) if signature_name else klass
 
     parameters = {}
-    if "Tensor" in func.__name__:
-        import pdb
-        pdb.set_trace()
     needs_base_args = any(
         [
             parameter_type
