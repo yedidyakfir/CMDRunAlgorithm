@@ -62,9 +62,14 @@ class RunCLIAlgorithm(MultiCommand):
                 )
                 for param in parameters
             ]
-            params += getattr(self.command_runner, "__click_params__", [])
-            params += getattr(self.command_runner, "params", [])
+            params += self.addtional_params()
             return Command(cmd_name, params=params, callback=alg_command)
+
+    def addtional_params(self):
+        params = []
+        params += getattr(self.command_runner, "__click_params__", [])
+        params += getattr(self.command_runner, "params", [])
+        return params
 
 
 def run_class(*args, callback, **kwargs):
@@ -73,8 +78,15 @@ def run_class(*args, callback, **kwargs):
 
 class RunnerWithCLI(RunCLIAlgorithm):
     def __init__(self, *args, command_runner, **kwargs):
+        self.user_func = command_runner
         callback = functools.partial(run_class, callback=command_runner)
         super().__init__(*args, command_runner=callback, **kwargs)
+
+    def addtional_params(self):
+        params = super().addtional_params()
+        params += getattr(self.user_func, "__click_params__", [])
+        params += getattr(self.user_func, "params", [])
+        return params
 
 
 class RunCLIAlgorithm(RunnerWithCLI):
