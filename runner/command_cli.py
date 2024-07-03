@@ -4,6 +4,7 @@ from typing import Callable, List, Optional, Dict, Tuple
 
 from click import MultiCommand, Context, Command, Option
 
+from runner.dynamic_loading import find_subclasses
 from runner.parameters_analysis import cli_parameters_for_calling
 from runner.run import run
 
@@ -76,7 +77,7 @@ class RunnerWithCLI(RunCLIAlgorithm):
         super().__init__(*args, command_runner=callback, **kwargs)
 
 
-class RunCLIAlgorithmFromModule(RunnerWithCLI):
+class RunCLIAlgorithm(RunnerWithCLI):
     def __init__(
         self,
         algorithms: Dict[str, type],
@@ -86,6 +87,12 @@ class RunCLIAlgorithmFromModule(RunnerWithCLI):
     ):
         commands = {name: (alg, func_name) for name, alg in algorithms.items()}
         super().__init__(*args, callables=commands, **kwargs)
+
+
+class RunCLIAlgorithmFromModule(RunCLIAlgorithm):
+    def __init__(self, module: ModuleType, base_type: type, *args, **kwargs):
+        algorithms = {klass.__name__: klass for klass in find_subclasses(module, base_type)}
+        super().__init__(algorithms, *args, module=module, **kwargs)
 
 
 class RunCLIClassFunctions(RunnerWithCLI):
