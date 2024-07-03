@@ -168,7 +168,7 @@ def cli_parameters_for_calling(
         parameters.append(CliParam(str, False, None, create_type_parameter(full_param_path)))
         parameters.append(CliParam(str, True, None, create_param_connection_name(full_param_path)))
         parameters.append(CliParam(str, False, None, create_param_creator_name(full_param_path)))
-        param_type = value.annotation
+        param_type = extract_type_from_annotation(value.annotation)
         if need_params_for_signature(param_type, add_options_from_outside_packages):
             sub_classes = find_subclasses(base_module, param_type)
             for sub_class in set(sub_classes + [param_type]):
