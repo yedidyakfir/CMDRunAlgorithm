@@ -67,6 +67,19 @@ class RunCLIAlgorithm(MultiCommand):
                 )
                 for param in parameters
             ]
+            params += [
+                Option(
+                    ["--assign"],
+                    type=click.Tuple([str, str]),
+                    multiple=True,
+                    callback=convert_assign_to_pattern,
+                ),
+                Option(
+                    ["--use-config"],
+                    type=str,
+                    multiple=True,
+                ),
+            ]
             params += self.addtional_params()
             return Command(cmd_name, params=params, callback=alg_command)
 

@@ -1,7 +1,7 @@
 import logging
 import os
 from logging import Logger
-from typing import List, Optional
+from typing import List, Optional, Dict, Pattern, Any
 
 from runner.dynamic_loading import find_class_by_name
 from runner.object_creation import (
@@ -17,8 +17,8 @@ def run(
     base_module: str,
     default_config: dict,
     config: dict,
-    default_rules: dict,
-    rules: dict,
+    default_rules: Dict[Pattern, Any],
+    rules: Dict[Pattern, Any],
     add_options_from_outside_packages: bool,
     global_settings: dict,
     use_config: Optional[List[str]],
@@ -26,7 +26,7 @@ def run(
 ):
     logger = logger or logging.getLogger(__name__)
     # TODO - how to get logger from user?
-    module = __import__(base_module)
+    module = base_module # __import__(base_module) todo module or string?
 
     algorithm_class = find_class_by_name(module, class_name)
     # TODO - how to set consts? like space or env
