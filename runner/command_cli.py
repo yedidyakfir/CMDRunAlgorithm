@@ -2,11 +2,13 @@ import functools
 from types import ModuleType
 from typing import Callable, List, Optional, Dict, Tuple
 
+import click
 from click import MultiCommand, Context, Command, Option
 
 from runner.dynamic_loading import find_subclasses
 from runner.parameters_analysis import cli_parameters_for_calling
 from runner.run import run
+from runner.utils.click import convert_assign_to_pattern
 
 
 class RunCLIAlgorithm(MultiCommand):
@@ -34,7 +36,10 @@ class RunCLIAlgorithm(MultiCommand):
         if cmd_name in self.callables:
             klass, func_name = self.callables[cmd_name]
             alg_command = functools.partial(
-                self.command_runner, algorithm=cmd_name, func_name=func_name
+                self.command_runner,
+                class_name=cmd_name,
+                func_name=func_name,
+                base_module=self.module,
             )
 
             init_params = cli_parameters_for_calling(
