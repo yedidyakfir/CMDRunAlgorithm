@@ -40,6 +40,7 @@ class RunCLIAlgorithm(MultiCommand):
                 class_name=cmd_name,
                 func_name=func_name,
                 base_module=self.module,
+                add_options_from_outside_packages=self.add_options_from_outside_packages,
             )
 
             init_params = cli_parameters_for_calling(
