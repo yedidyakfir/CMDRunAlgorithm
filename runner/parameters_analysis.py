@@ -200,19 +200,19 @@ def extract_value_from_settings(
     logger: Logger,
 ):
     full_param_name = f"{initials}{param_name}"
-    creator = key_value_config.get(param_name) if isinstance(key_value_config, dict) else None
-    creator = creator or (
+    value = key_value_config.get(param_name) if isinstance(key_value_config, dict) else None
+    value = value or (
         key_value_config_default.get(param_name)
         if isinstance(key_value_config_default, dict)
         else None
     )
-    creator = creator or get_first_value_for_matching_patterns(
+    value = value or get_first_value_for_matching_patterns(
         regex_config, full_param_name, logger
     )
-    creator = creator or get_first_value_for_matching_patterns(
+    value = value or get_first_value_for_matching_patterns(
         default_regex, full_param_name, logger
     )
-    return creator
+    return value
 
 
 def needed_parameters_for_calling(
