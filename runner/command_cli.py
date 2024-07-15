@@ -69,12 +69,10 @@ class RunCLIAlgorithm(MultiCommand):
                 for param in parameters
             ]
             params += [
-                Option(
-                    ["--assign"],
-                    type=click.Tuple([str, str]),
-                    multiple=True,
-                    callback=convert_assign_to_pattern,
-                ),
+                create_assigner_option("value"),
+                create_assigner_option("type"),
+                create_assigner_option("creator"),
+                create_assigner_option("connection"),
                 Option(
                     ["--use-config"],
                     type=str,
@@ -138,3 +136,5 @@ class RunCLIClassFunctions(RunnerWithCLI):
 # TODO - enable run subclass of a certain function
 # TODO - enable run file with parameters, while the user give you some of the parameters in his own way
 # TODO - test this file
+
+# TODO - I dont want to set type of parameters and also set value, make it so setting value override setting type

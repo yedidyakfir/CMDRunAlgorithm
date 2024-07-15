@@ -9,6 +9,7 @@ from runner.object_creation import (
     only_creation_relevant_parameters_from_created,
 )
 from runner.parameters_analysis import needed_parameters_for_calling
+from runner.parameters_analysis import Rules
 
 
 def run(
@@ -17,8 +18,14 @@ def run(
     base_module: str,
     default_config: dict,
     config: dict,
-    default_rules: Dict[Pattern, Any],
-    rules: Dict[Pattern, Any],
+    default_assign_value: Dict[Pattern, Any],
+    default_assign_type: Dict[Pattern, Any],
+    default_assign_creator: Dict[Pattern, Any],
+    default_assign_connection: Dict[Pattern, Any],
+    assign_value: Dict[Pattern, Any],
+    assign_type: Dict[Pattern, Any],
+    assign_creator: Dict[Pattern, Any],
+    assign_connection: Dict[Pattern, Any],
     add_options_from_outside_packages: bool,
     global_settings: dict,
     use_config: Optional[List[str]],
@@ -26,7 +33,23 @@ def run(
 ):
     logger = logger or logging.getLogger(__name__)
     # TODO - how to get logger from user?
-    module = base_module # __import__(base_module) todo module or string?
+    if isinstance(base_module, str):
+        module = __import__(base_module)
+    else:
+        module = base_module
+
+    default_rules = Rules(
+        value_rules=default_assign_value,
+        type_rules=default_assign_type,
+        creator_rules=default_assign_creator,
+        connection_rules=default_assign_connection,
+    )
+    rules = Rules(
+        value_rules=assign_value,
+        type_rules=assign_type,
+        creator_rules=assign_creator,
+        connection_rules=assign_connection,
+    )
 
     algorithm_class = find_class_by_name(module, class_name)
     # TODO - how to set consts? like space or env
