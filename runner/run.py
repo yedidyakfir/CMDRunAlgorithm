@@ -17,7 +17,6 @@ def run(
     func_name: str,
     base_module: str,
     default_config: dict,
-    config: dict,
     default_assign_value: Dict[Pattern, Any],
     default_assign_type: Dict[Pattern, Any],
     default_assign_creator: Dict[Pattern, Any],
@@ -30,6 +29,7 @@ def run(
     global_settings: dict,
     use_config: Optional[List[str]],
     logger: Logger = None,
+    **config,
 ):
     logger = logger or logging.getLogger(__name__)
     # TODO - how to get logger from user?
