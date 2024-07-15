@@ -5,6 +5,7 @@ import mock
 from mock.mock import call
 
 from runner.run import run
+from runner.parameters_analysis import Rules
 
 
 @mock.patch("runner.run.needed_parameters_for_calling")
@@ -23,11 +24,10 @@ def test__run__sanity(find_class_by_name_mock, create_objects_mock, needed_param
     create_objects_mock.side_effect = [algorithm, call_param | nested_params]
     class_name = "MockH"
     func_name = "func"
-    base_module = "tests.mock_module"
     default_config = {}
     config = {}
-    default_rules = {}
-    rules = {}
+    default_rules = Rules()
+    rules = Rules()
     add_options_from_outside_packages = True
     global_settings = {}
     use_config = None
@@ -37,7 +37,7 @@ def test__run__sanity(find_class_by_name_mock, create_objects_mock, needed_param
     run(
         class_name,
         func_name,
-        base_module,
+        tests,
         default_config,
         config,
         default_rules,

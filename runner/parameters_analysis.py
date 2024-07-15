@@ -6,6 +6,8 @@ import typing
 from logging import Logger
 from types import ModuleType
 from typing import Dict, Pattern, Any, Optional, List
+from dataclasses import field
+from collections import defaultdict
 
 from runner.dynamic_loading import find_class_by_name, find_subclasses
 from runner.object_creation import ParameterGraph, ParameterNode
@@ -30,6 +32,15 @@ class CliParam:
 
 
 ParameterType = Dict[str, ParameterHierarchy]
+RulesType = Dict[Pattern, Any]
+
+
+@dataclasses.dataclass
+class Rules:
+    value_rules: RulesType = field(default_factory=lambda: defaultdict(dict))
+    type_rules: RulesType = field(default_factory=lambda: defaultdict(dict))
+    creator_rules: RulesType = field(default_factory=lambda: defaultdict(dict))
+    connected_params_rules: RulesType = field(default_factory=lambda: defaultdict(dict))
 
 
 def create_type_parameter(parameter_name: str):
@@ -163,8 +174,12 @@ def cli_parameters_for_calling(
 
         full_param_path = f"{initials}{param}"
         parameters.append(CliParam(str, False, None, create_type_parameter(full_param_path)))
-        parameters.append(CliParam(str, True, None, create_param_connection_name(full_param_path)))
-        parameters.append(CliParam(str, False, None, create_param_creator_name(full_param_path)))
+        parameters.append(
+            CliParam(str, True, None, create_param_connection_name(full_param_path))
+        )
+        parameters.append(
+            CliParam(str, False, None, create_param_creator_name(full_param_path))
+        )
         param_type = extract_type_from_annotation(value.annotation)
         if need_params_for_signature(param_type, add_options_from_outside_packages):
             sub_classes = find_subclasses(base_module, param_type)
@@ -193,8 +208,8 @@ def cli_parameters_for_calling(
 def extract_value_from_settings(
     param_name: str,
     initials: str,
-    regex_config: Dict[Pattern, Any],
-    default_regex: Dict[Pattern, Any],
+    regex_config: RulesType,
+    default_regex: RulesType,
     key_value_config: Dict[str, Any],
     key_value_config_default: Dict[str, Any],
     logger: Logger,
@@ -220,8 +235,8 @@ def needed_parameters_for_calling(
     signature_name: Optional[str],
     key_value_config_default: dict,
     key_value_config: dict,
-    regex_config_default: Dict[Pattern, Any],
-    regex_config: Dict[Pattern, Any],
+    regex_config_default: Rules,
+    regex_config: Rules,
     base_module: ModuleType,
     add_options_from_outside_packages: bool,
     initials: str = "",
@@ -243,8 +258,8 @@ def needed_parameters_for_calling(
         param_type = extract_value_from_settings(
             param_type_name,
             initials,
-            regex_config,
-            regex_config_default,
+            regex_config.type_rules,
+            regex_config_default.type_rules,
             key_value_config,
             key_value_config_default,
             logger,
@@ -257,8 +272,8 @@ def needed_parameters_for_calling(
         creator = extract_value_from_settings(
             creator_name,
             initials,
-            regex_config,
-            regex_config_default,
+            regex_config.creator_rules,
+            regex_config_default.creator_rules,
             key_value_config,
             key_value_config_default,
             logger,
@@ -268,8 +283,8 @@ def needed_parameters_for_calling(
         connected_params = extract_value_from_settings(
             connected_params_name,
             initials,
-            regex_config,
-            regex_config_default,
+            regex_config.connected_params_rules,
+            regex_config_default.connected_params_rules,
             key_value_config,
             key_value_config_default,
             logger,
@@ -318,7 +333,9 @@ def needed_parameters_for_calling(
                 f"Parameter {full_param_path} set to {key_value_config.get(param)} from a config"
             )
         elif matching_rules_values := (
-            get_first_value_for_matching_patterns(regex_config, full_param_path, logger)
+            get_first_value_for_matching_patterns(
+                regex_config.value_rules, full_param_path, logger
+            )
         ):
             final_parameter = ParameterNode(
                 param_type, matching_rules_values, connected_params, creator
@@ -334,7 +351,7 @@ def needed_parameters_for_calling(
                 f"Parameter {full_param_path} set to {key_value_config_default.get(param)} from a default config"
             )
         elif matching_rules_values := get_first_value_for_matching_patterns(
-            regex_config_default, full_param_path, logger
+            regex_config_default.value_rules, full_param_path, logger
         ):
             final_parameter = ParameterNode(
                 param_type, matching_rules_values, connected_params, creator

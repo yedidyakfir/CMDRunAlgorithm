@@ -12,6 +12,7 @@ from runner.parameters_analysis import (
     needed_parameters_for_calling,
     cli_parameters_for_calling,
     CliParam,
+    Rules,
 )
 from tests import mock_module
 from tests.conftest import EXPECTED_GRAPH, create_opt
@@ -101,7 +102,9 @@ def test__needed_parameters_for_creation__sanity():
         "c": 0.1,
         "b": "bbb",
     }
-    regex_config = {re.compile(r".*\.a$"): 12, re.compile(r"^f_type$"): MockA}
+    regex_config = Rules(
+        value_rules={re.compile(r".*\.a$"): 12}, type_rules={re.compile(r"^f_type$"): MockA}
+    )
     signature_name = "func_name"
     expected = EXPECTED_GRAPH
     logger = MagicMock()
@@ -112,7 +115,7 @@ def test__needed_parameters_for_creation__sanity():
         signature_name,
         {},
         key_value_config,
-        {},
+        Rules(),
         regex_config,
         mock_module,
         True,
@@ -130,22 +133,22 @@ def test__needed_parameters_for_creation__sanity():
         [
             {"a_type": "torch.optim.SGD"},
             {"a_type": "MockB"},
-            {},
-            {},
+            Rules(),
+            Rules(),
             {"a": ParameterNode(type=MockB, value=None, edges={})},
         ],
         [
             {"b": 1},
             {"b": 2},
-            {},
-            {},
+            Rules(),
+            Rules(),
             {"b": ParameterNode(type=str, value=2, edges={})},
         ],
         [
             {"b": 1},
             {"c": 2},
-            {},
-            {},
+            Rules(),
+            Rules(),
             {
                 "b": ParameterNode(type=str, value=1, edges={}),
                 "c": ParameterNode(type=float, value=2, edges={}),
@@ -154,8 +157,8 @@ def test__needed_parameters_for_creation__sanity():
         [
             {},
             {"b": 1, "__b_connected_params": {"b.c": "c"}},
-            {},
-            {},
+            Rules(),
+            Rules(),
             {
                 "b": ParameterNode(type=str, value=1, edges={"b.c": "c"}),
             },
@@ -163,8 +166,8 @@ def test__needed_parameters_for_creation__sanity():
         [
             {"c_type": "torch.optim.SGD", "__c_connected_params": {"b.c": "c"}},
             {},
-            {},
-            {},
+            Rules(),
+            Rules(),
             {
                 "c": ParameterNode(type=SGD, value=None, edges={"b.c": "c"}),
             },
@@ -172,8 +175,8 @@ def test__needed_parameters_for_creation__sanity():
         [
             {"c_type": "torch.optim.SGD", "__c_creator": "func"},
             {},
-            {},
-            {},
+            Rules(),
+            Rules(),
             {
                 "c": ParameterNode(type=SGD, value=None, edges={}, creator=func),
             },
@@ -181,8 +184,8 @@ def test__needed_parameters_for_creation__sanity():
         [
             {},
             {"c_type": "torch.optim.SGD", "__c_creator": "tests.mock_module.utils.func"},
-            {},
-            {},
+            Rules(),
+            Rules(),
             {
                 "c": ParameterNode(type=SGD, value=None, edges={}, creator=func),
             },
@@ -190,22 +193,22 @@ def test__needed_parameters_for_creation__sanity():
         [
             {},
             {},
-            {re.compile(r"c$"): 12},
-            {re.compile(r"c$"): 11},
+            Rules(value_rules={re.compile(r"c$"): 12}),
+            Rules(value_rules={re.compile(r"c$"): 11}),
             {"c": ParameterNode(type=float, value=11, edges={})},
         ],
         [
             {},
             {},
-            {re.compile(r"c_type$"): MockA},
-            {re.compile(r"c_type$"): "torch.optim.SGD"},
+            Rules(type_rules={re.compile(r"c_type$"): MockA}),
+            Rules(type_rules={re.compile(r"c_type$"): "torch.optim.SGD"}),
             {"c": ParameterNode(type=SGD, value=None, edges={})},
         ],
         [
             {},
             {},
-            {re.compile(r"a_type$"): MockA},
-            {re.compile(r"c$"): "SGD"},
+            Rules(type_rules={re.compile(r"a_type$"): MockA}),
+            Rules(value_rules={re.compile(r"c$"): "SGD"}),
             {
                 "a": ParameterNode(type=MockA, value=None, edges={}),
                 "c": ParameterNode(type=float, value="SGD", edges={}),
@@ -214,8 +217,11 @@ def test__needed_parameters_for_creation__sanity():
         [
             {},
             {},
-            {re.compile(r"b$"): 1, re.compile(r"__b_connected_params$"): {"b.c": "c"}},
-            {},
+            Rules(
+                value_rules={re.compile(r"b$"): 1},
+                connected_params_rules={re.compile(r"__b_connected_params$"): {"b.c": "c"}},
+            ),
+            Rules(),
             {
                 "b": ParameterNode(type=str, value=1, edges={"b.c": "c"}),
             },
@@ -223,11 +229,11 @@ def test__needed_parameters_for_creation__sanity():
         [
             {},
             {},
-            {
-                re.compile("c_type"): "torch.optim.SGD",
-                re.compile("__c_connected_params"): {"b.c": "c"},
-            },
-            {},
+            Rules(
+                type_rules={re.compile("c_type"): "torch.optim.SGD"},
+                connected_params_rules={re.compile("__c_connected_params"): {"b.c": "c"}},
+            ),
+            Rules(),
             {
                 "c": ParameterNode(type=SGD, value=None, edges={"b.c": "c"}),
             },
@@ -235,11 +241,11 @@ def test__needed_parameters_for_creation__sanity():
         [
             {},
             {},
-            {},
-            {
-                re.compile("c_type"): "torch.optim.SGD",
-                re.compile("__c_creator"): "tests.mock_module.utils.func",
-            },
+            Rules(),
+            Rules(
+                type_rules={re.compile("c_type"): "torch.optim.SGD"},
+                creator_rules={re.compile("__c_creator"): "tests.mock_module.utils.func"},
+            ),
             {
                 "c": ParameterNode(type=SGD, value=None, edges={}, creator=func),
             },
@@ -261,12 +267,20 @@ def test__needed_parameters_for_creation__check_rules_configs_and_default(
 def test__needed_parameters_for_creation__warning_for_unmatching_value_and_type():
     # Arrange
     key_value_config = {"a": {"b": "BBBBB"}}
-    regex_config = {re.compile(r"a_type$"): str}
+    regex_config = Rules(type_rules={re.compile(r"a_type$"): str})
     logger = MagicMock()
 
     # Act
     needed_parameters_for_calling(
-        MockA, None, {}, key_value_config, {}, regex_config, mock_module, True, logger=logger
+        MockA,
+        None,
+        {},
+        key_value_config,
+        Rules(),
+        regex_config,
+        mock_module,
+        True,
+        logger=logger,
     )
 
     # Assert
@@ -275,12 +289,12 @@ def test__needed_parameters_for_creation__warning_for_unmatching_value_and_type(
 
 def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
     # Arrange
-    regex_config = {re.compile(r".*\.a$"): 12, re.compile(r"^b\.a$"): MockA}
+    regex_config = Rules(value_rules={re.compile(r".*\.a$"): 12, re.compile(r"^b\.a$"): MockA})
     logger = MagicMock()
 
     # Act
     needed_parameters_for_calling(
-        MockC, "func_name", {}, {}, {}, regex_config, mock_module, True, logger=logger
+        MockC, "func_name", {}, {}, Rules(), regex_config, mock_module, True, logger=logger
     )
 
     # Assert
@@ -441,8 +455,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                 CliParam(type=str, multiple=False, default=None, name="opt_type"),
                 CliParam(type=str, multiple=True, default=None, name="__opt_connected_params"),
                 CliParam(type=str, multiple=False, default=None, name="__opt_creator"),
-                CliParam(type=str, multiple=False, default=None, name="opt"),
-                CliParam(type=None, multiple=False, default=None, name='opt')
+                CliParam(type=None, multiple=False, default=None, name="opt"),
             ],
         ],
     ],
