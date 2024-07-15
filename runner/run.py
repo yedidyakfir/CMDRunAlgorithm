@@ -42,13 +42,13 @@ def run(
         value_rules=default_assign_value,
         type_rules=default_assign_type,
         creator_rules=default_assign_creator,
-        connection_rules=default_assign_connection,
+        connected_params_rules=default_assign_connection,
     )
     rules = Rules(
         value_rules=assign_value,
         type_rules=assign_type,
         creator_rules=assign_creator,
-        connection_rules=assign_connection,
+        connected_params_rules=assign_connection,
     )
 
     algorithm_class = find_class_by_name(module, class_name)
