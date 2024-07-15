@@ -31,6 +31,7 @@ def run(
     logger: Logger = None,
     **config,
 ):
+    use_logger = logger is not None
     logger = logger or logging.getLogger(__name__)
     # TODO - how to get logger from user?
     if isinstance(base_module, str):
@@ -70,6 +71,8 @@ def run(
         add_options_from_outside_packages,
         logger=logger,
     )
+    if "logger" in parameters_graph and use_logger:
+        parameters_graph["logger"].value = logger
     algorithm = create_objects(parameters_graph)
     # TODO - how to manipulate the class, like setting the start point?
 
