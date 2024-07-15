@@ -42,6 +42,13 @@ class RunCLIAlgorithm(MultiCommand):
                 func_name=func_name,
                 base_module=self.module,
                 add_options_from_outside_packages=self.add_options_from_outside_packages,
+                # TODO - complete this
+                default_assign_value={},
+                default_assign_type={},
+                default_assign_creator={},
+                default_assign_connection={},
+                default_config={},
+                global_settings={},
             )
 
             init_params = cli_parameters_for_calling(
