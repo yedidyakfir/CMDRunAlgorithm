@@ -9,6 +9,7 @@ from runner.dynamic_loading import find_subclasses
 from runner.parameters_analysis import cli_parameters_for_calling
 from runner.run import run
 from runner.utils.click import convert_assign_to_pattern
+from runner.utils.click import create_assigner_option
 
 
 class RunCLIAlgorithm(MultiCommand):
