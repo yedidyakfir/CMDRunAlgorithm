@@ -355,8 +355,8 @@ def needed_parameters_for_calling(
             klass_parameters = needed_parameters_for_calling(
                 param_type,
                 None,
-                key_value_config_default.get(param, {}),
-                key_value_config.get(param, {}),
+                key_value_config_default.get(param) or {},
+                key_value_config.get(param) or {},
                 regex_config_default,
                 regex_config,
                 base_module,
