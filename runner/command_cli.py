@@ -73,6 +73,7 @@ class RunCLIAlgorithm(MultiCommand):
                     type=param.type,
                     multiple=param.multiple,
                     default=param.default,
+                    is_flag=param.is_flag,
                 )
                 for param in parameters
             ]
