@@ -55,6 +55,10 @@ def create_param_connection_name(parameter_name: str):
     return f"__{parameter_name}_connected_params"
 
 
+def create_param_initialize_command_name(parameter_name: str):
+    return f"__{parameter_name}_init"
+
+
 def create_type_from_name(module: ModuleType, param_type: Any, only_class: bool = True):
     if isinstance(param_type, str):
         if "." in param_type:
@@ -173,15 +177,18 @@ def cli_parameters_for_calling(
             continue
 
         full_param_path = f"{initials}{param}"
-        parameters.append(CliParam(str, False, None, create_type_parameter(full_param_path)))
-        parameters.append(
-            CliParam(str, True, None, create_param_connection_name(full_param_path))
-        )
-        parameters.append(
-            CliParam(str, False, None, create_param_creator_name(full_param_path))
-        )
+        parameters += [
+            CliParam(str, False, None, create_type_parameter(full_param_path)),
+            CliParam(str, True, None, create_param_connection_name(full_param_path)),
+            CliParam(str, False, None, create_param_creator_name(full_param_path)),
+        ]
         param_type = extract_type_from_annotation(value.annotation)
         if need_params_for_signature(param_type, add_options_from_outside_packages):
+            parameters.append(
+                CliParam(
+                    bool, False, None, create_param_initialize_command_name(full_param_path)
+                )
+            )
             sub_classes = find_subclasses(base_module, param_type)
             for sub_class in set(sub_classes + [param_type]):
                 klass_parameters = cli_parameters_for_calling(
@@ -303,7 +310,19 @@ def needed_parameters_for_calling(
         )
 
         # Create the node for the parameter
-        param_mentioned_by_user = param_value or param_type or creator or connected_params
+        init_value_name = create_param_initialize_command_name(full_param_path)
+        init_value = extract_value_from_settings(
+            init_value_name,
+            initials,
+            regex_config.value_rules,
+            regex_config_default.value_rules,
+            key_value_config,
+            key_value_config_default,
+            logger,
+        )
+        param_mentioned_by_user = (
+            param_value or config_param_type or creator or connected_params or init_value
+        )
 
         if key_value_config.get(param) == "None":
             final_parameter = ParameterNode(param_type, None, connected_params, creator)
