@@ -60,6 +60,13 @@ def create_param_initialize_command_name(parameter_name: str):
     return f"__{parameter_name}_init"
 
 
+def create_edges_mapping_from_connection_params(connections: List[str]):
+    return {
+        full_sub_param_name: full_sub_param_name.split(".")[-1]
+        for full_sub_param_name in connections
+    }
+
+
 def create_type_from_name(module: ModuleType, param_type: Any, only_class: bool = True):
     if isinstance(param_type, str):
         if "." in param_type:
@@ -303,6 +310,8 @@ def needed_parameters_for_calling(
         )
         if connected_params is None:
             connected_params = {}
+        else:
+            connected_params = create_edges_mapping_from_connection_params(connected_params)
 
         param_value = extract_value_from_settings(
             param,
@@ -359,10 +368,7 @@ def needed_parameters_for_calling(
             final_parameter = ParameterNode(
                 param_type,
                 None,
-                {
-                    full_sub_param_name: full_sub_param_name.split(".")[-1]
-                    for full_sub_param_name, node in klass_parameters.items()
-                }
+                create_edges_mapping_from_connection_params(klass_parameters.keys())
                 | connected_params,
                 creator,
             )
