@@ -304,9 +304,7 @@ def test__needed_parameters_for_creation__warning_for_unmatching_value_and_type(
 
 def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
     # Arrange
-    regex_config = Rules(
-        value_rules={re.compile(r".*\.a$"): 12, re.compile(r"^b\.a$"): MockA}
-    )
+    regex_config = Rules(value_rules={re.compile(r".*\.a$"): 12, re.compile(r"^b\.a$"): MockA})
     logger = MagicMock()
 
     # Act
@@ -364,6 +362,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                 CliParam(type=str, multiple=False, default=None, name="b_type"),
                 CliParam(type=str, multiple=True, default=None, name="__b_connected_params"),
                 CliParam(type=str, multiple=False, default=None, name="__b_creator"),
+                CliParam(type=bool, multiple=False, default=None, name="__b_init", flag=True),
                 CliParam(type=str, multiple=False, default=None, name="b.a_type"),
                 CliParam(type=str, multiple=True, default=None, name="__b.a_connected_params"),
                 CliParam(type=str, multiple=False, default=None, name="__b.a_creator"),
@@ -386,6 +385,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                 CliParam(type=str, multiple=False, default=None, name="opt_type"),
                 CliParam(type=str, multiple=True, default=None, name="__opt_connected_params"),
                 CliParam(type=str, multiple=False, default=None, name="__opt_creator"),
+                CliParam(type=bool, multiple=False, default=None, name="__opt_init", flag=True),
                 CliParam(type=str, multiple=False, default=None, name="opt.params_type"),
                 CliParam(
                     type=str, multiple=True, default=None, name="__opt.params_connected_params"
