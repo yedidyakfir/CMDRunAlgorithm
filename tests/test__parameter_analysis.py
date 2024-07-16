@@ -304,12 +304,22 @@ def test__needed_parameters_for_creation__warning_for_unmatching_value_and_type(
 
 def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
     # Arrange
-    regex_config = Rules(value_rules={re.compile(r".*\.a$"): 12, re.compile(r"^b\.a$"): MockA})
+    regex_config = Rules(
+        value_rules={re.compile(r".*\.a$"): 12, re.compile(r"^b\.a$"): MockA}
+    )
     logger = MagicMock()
 
     # Act
     needed_parameters_for_calling(
-        MockC, "func_name", {}, {}, Rules(), regex_config, mock_module, True, logger=logger
+        MockC,
+        "func_name",
+        {},
+        {"__b_init": True},
+        Rules(),
+        regex_config,
+        mock_module,
+        True,
+        logger=logger,
     )
 
     # Assert
