@@ -29,6 +29,7 @@ class CliParam:
     multiple: bool
     default: Any
     name: str
+    flag: bool = False
 
 
 ParameterType = Dict[str, ParameterHierarchy]
@@ -186,7 +187,11 @@ def cli_parameters_for_calling(
         if need_params_for_signature(param_type, add_options_from_outside_packages):
             parameters.append(
                 CliParam(
-                    bool, False, None, create_param_initialize_command_name(full_param_path)
+                    bool,
+                    False,
+                    None,
+                    create_param_initialize_command_name(full_param_path),
+                    True,
                 )
             )
             sub_classes = find_subclasses(base_module, param_type)
