@@ -264,6 +264,21 @@ def test__needed_parameters_for_creation__check_rules_configs_and_default(
     assert result == expected
 
 
+def test__needed_parameters_for_creation__check_annotation_doesnt_create_class():
+    # Arrange
+    class MockClass:
+        def __init__(self, a: MockA):
+            pass
+
+    # Act
+    result = needed_parameters_for_calling(
+        MockClass, None, {}, {}, Rules(), Rules(), mock_module, True
+    )
+
+    # Assert
+    assert result == {}
+
+
 def test__needed_parameters_for_creation__warning_for_unmatching_value_and_type():
     # Arrange
     key_value_config = {"a": 12}
