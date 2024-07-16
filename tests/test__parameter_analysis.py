@@ -266,7 +266,7 @@ def test__needed_parameters_for_creation__check_rules_configs_and_default(
 
 def test__needed_parameters_for_creation__warning_for_unmatching_value_and_type():
     # Arrange
-    key_value_config = {"a": {"b": "BBBBB"}}
+    key_value_config = {"a": 12}
     regex_config = Rules(type_rules={re.compile(r"a_type$"): str})
     logger = MagicMock()
 

@@ -255,7 +255,7 @@ def needed_parameters_for_calling(
         full_param_path = f"{initials}{param}"
         param_type_name = create_type_parameter(param)
 
-        param_type = extract_value_from_settings(
+        config_param_type = extract_value_from_settings(
             param_type_name,
             initials,
             regex_config.type_rules,
@@ -265,7 +265,7 @@ def needed_parameters_for_calling(
             logger,
         )
         annotation = extract_type_from_annotation(value.annotation)
-        param_type = param_type or annotation
+        param_type = config_param_type or annotation
         param_type = create_type_from_name(base_module, param_type)
 
         creator_name = create_param_creator_name(full_param_path)
@@ -303,6 +303,8 @@ def needed_parameters_for_calling(
         )
 
         # Create the node for the parameter
+        param_mentioned_by_user = param_value or param_type or creator or connected_params
+
         if key_value_config.get(param) == "None":
             final_parameter = ParameterNode(param_type, None, connected_params, creator)
         elif (
@@ -313,7 +315,10 @@ def needed_parameters_for_calling(
         elif param_value and not isinstance(param_value, dict):
             final_parameter = ParameterNode(param_type, param_value, connected_params, creator)
             logger.info(f"Parameter {full_param_path} has a value of {param_value}")
-        elif need_params_for_signature(param_type, add_options_from_outside_packages) and True:
+        elif (
+            need_params_for_signature(param_type, add_options_from_outside_packages)
+            and param_mentioned_by_user
+        ):
             klass_parameters = needed_parameters_for_calling(
                 param_type,
                 None,
