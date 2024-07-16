@@ -73,7 +73,8 @@ def run(
     )
     if "logger" in parameters_graph and use_logger:
         parameters_graph["logger"].value = logger
-    algorithm = create_objects(parameters_graph)
+    init_params = only_creation_relevant_parameters_from_created(create_objects(parameters_graph))
+    algorithm = algorithm_class(**init_params)
     # TODO - how to manipulate the class, like setting the start point?
 
     train_parameters_graph = needed_parameters_for_calling(

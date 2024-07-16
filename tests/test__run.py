@@ -11,17 +11,20 @@ from runner.parameters_analysis import Rules
 @mock.patch("runner.run.needed_parameters_for_calling")
 @mock.patch("runner.run.create_objects")
 @mock.patch("runner.run.find_class_by_name")
-def test__run__sanity(find_class_by_name_mock, create_objects_mock, needed_parameters_for_calling_mock):
+def test__run__sanity(
+    find_class_by_name_mock, create_objects_mock, needed_parameters_for_calling_mock
+):
     # Arrange
-    class_mock_h = "ClassMockH"
+    algorithm = MagicMock()
+    class_mock_h = MagicMock(return_value=algorithm)
     nested_params = {"a.b": 4}
     call_param = {"1": 2, "2": "3"}
+    alg_call_param = {"2": 2, "4": "3"}
     find_class_by_name_mock.return_value = class_mock_h
     graph1 = MagicMock()
     graph2 = MagicMock()
-    algorithm = MagicMock()
     needed_parameters_for_calling_mock.side_effect = [graph1, graph2]
-    create_objects_mock.side_effect = [algorithm, call_param | nested_params]
+    create_objects_mock.side_effect = [alg_call_param | nested_params, call_param | nested_params]
     class_name = "MockH"
     func_name = "func"
     default_config = {}
@@ -84,3 +87,4 @@ def test__run__sanity(find_class_by_name_mock, create_objects_mock, needed_param
     create_objects_mock.assert_has_calls([call(graph1), call(graph2)])
     find_class_by_name_mock.assert_has_calls([call(tests, class_name)])
     algorithm.func.assert_called_once_with(**call_param)
+    class_mock_h.assert_called_once_with(**alg_call_param)
