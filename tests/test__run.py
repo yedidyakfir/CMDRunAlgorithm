@@ -39,13 +39,19 @@ def test__run__sanity(find_class_by_name_mock, create_objects_mock, needed_param
         func_name,
         tests,
         default_config,
-        config,
-        default_rules,
-        rules,
+        default_rules.value_rules,
+        default_rules.type_rules,
+        default_rules.creator_rules,
+        default_rules.connected_params_rules,
+        rules.value_rules,
+        rules.type_rules,
+        rules.creator_rules,
+        rules.connected_params_rules,
         add_options_from_outside_packages,
         global_settings,
         use_config,
         logger=logger,
+        **config,
     )
 
     # Assert
