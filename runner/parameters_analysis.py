@@ -3,11 +3,11 @@ import importlib
 import inspect
 import logging
 import typing
+from collections import defaultdict
+from dataclasses import field
 from logging import Logger
 from types import ModuleType
 from typing import Dict, Pattern, Any, Optional, List
-from dataclasses import field
-from collections import defaultdict
 
 from runner.dynamic_loading import find_class_by_name, find_subclasses
 from runner.object_creation import ParameterGraph, ParameterNode
@@ -62,7 +62,9 @@ def create_param_initialize_command_name(parameter_name: str):
 
 def create_edges_mapping_from_connection_params(connections: List[str]):
     return {
-        full_sub_param_name: full_sub_param_name.split(".")[-1]
+        full_sub_param_name.split("->")[0]: full_sub_param_name.split("->")[1]
+        if "->" in full_sub_param_name
+        else full_sub_param_name.split(".")[-1]
         for full_sub_param_name in connections
     }
 
