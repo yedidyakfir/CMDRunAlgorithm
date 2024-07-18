@@ -278,7 +278,6 @@ def needed_parameters_for_calling(
     initials: str = "",
     logger: Logger = None,
 ) -> ParameterGraph:
-    # TODO - need to think about a nested way to create parameter graph type, how to analyze the type
     logger = logger or logging.getLogger(__name__)
     parameters = {}
     for param, value in get_full_signature_parameters(klass, None, signature_name).items():

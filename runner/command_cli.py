@@ -42,7 +42,6 @@ class RunCLIAlgorithm(MultiCommand):
                 func_name=func_name,
                 base_module=self.module,
                 add_options_from_outside_packages=self.add_options_from_outside_packages,
-                # TODO - complete this
                 default_assign_value={},
                 default_assign_type={},
                 default_assign_creator={},
@@ -139,11 +138,3 @@ class RunCLIClassFunctions(RunnerWithCLI):
             name: (klass, name) for name in dir(klass) if callable(getattr(klass, name))
         }
         super().__init__(*args, callables=callables, **kwargs)
-
-
-# TODO - enable run functions from class
-# TODO - enable run subclass of a certain function
-# TODO - enable run file with parameters, while the user give you some of the parameters in his own way
-# TODO - test this file
-
-# TODO - I dont want to set type of parameters and also set value, make it so setting value override setting type

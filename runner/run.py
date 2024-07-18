@@ -33,7 +33,6 @@ def run(
 ):
     use_logger = logger is not None
     logger = logger or logging.getLogger(__name__)
-    # TODO - how to get logger from user?
     if isinstance(base_module, str):
         module = __import__(base_module)
     else:
@@ -53,8 +52,6 @@ def run(
     )
 
     algorithm_class = find_class_by_name(module, class_name)
-    # TODO - how to set consts? like space or env
-    # TODO - how to set parameters from other parameters created? like lower bound and dims from space
 
     if use_config:
         for config_name in use_config:
@@ -75,7 +72,6 @@ def run(
         parameters_graph["logger"].value = logger
     init_params = only_creation_relevant_parameters_from_created(create_objects(parameters_graph))
     algorithm = algorithm_class(**init_params)
-    # TODO - how to manipulate the class, like setting the start point?
 
     train_parameters_graph = needed_parameters_for_calling(
         algorithm_class,
@@ -97,5 +93,3 @@ def run(
         f"Train with {os.linesep.join([f'{key}={value}' for key, value in func_parameters.items()])}"
     )
     function(**func_parameters)
-    # TODO - how to add additional const parameters? like handlers
-    # TODO - somtimes the creation of const is based on the parameters (like on trust region)

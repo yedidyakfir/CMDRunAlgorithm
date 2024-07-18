@@ -15,7 +15,6 @@ ParameterGraph = Dict[str, ParameterNode]
 
 
 def topological_sort(graph: ParameterGraph) -> List[str]:
-    # in_degree = {key: len(node.edges) for key, node in graph.items()}
     in_degree = {node: 0 for node in graph}
     for node in graph.values():
         for neighbor in node.edges:
