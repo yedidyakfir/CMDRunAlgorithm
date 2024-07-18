@@ -138,6 +138,13 @@ def test__needed_parameters_for_creation__sanity():
             {"a": ParameterNode(type=MockB, value=None, edges={})},
         ],
         [
+            {"a--const": "torch.optim.SGD"},
+            {"a_type": "MockB"},
+            Rules(),
+            Rules(),
+            {"a": ParameterNode(type=MockB, value=SGD, edges={})},
+        ],
+        [
             {"b": 1},
             {"b": 2},
             Rules(),

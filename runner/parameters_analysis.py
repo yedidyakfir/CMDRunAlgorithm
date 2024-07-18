@@ -342,6 +342,18 @@ def needed_parameters_for_calling(
             key_value_config_default,
             logger,
         )
+        if param_value is None:
+            param_const_value = extract_value_from_settings(
+                create_const_param_name(param),
+                initials,
+                regex_config.value_rules,
+                regex_config_default.value_rules,
+                key_value_config,
+                key_value_config_default,
+                logger,
+            )
+            if param_const_value:
+                param_value = create_type_from_name(base_module, param_const_value, False)
 
         # Create the node for the parameter
         init_value_name = create_param_initialize_command_name(full_param_path)
