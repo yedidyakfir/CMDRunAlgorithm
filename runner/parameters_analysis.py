@@ -235,18 +235,32 @@ def extract_value_from_settings(
 ):
     full_param_name = f"{initials}{param_name}"
     value = key_value_config.get(param_name) if isinstance(key_value_config, dict) else None
-    value = value or (
+    if value is not None:
+        logger.info(f"Parameter {full_param_name} has a value of {value} from config")
+        return value
+
+    value = (
         key_value_config_default.get(param_name)
         if isinstance(key_value_config_default, dict)
         else None
     )
-    value = value or get_first_value_for_matching_patterns(
+    if value is not None:
+        logger.info(f"Parameter {full_param_name} has a value of {value} from default config")
+        return value
+
+    value = get_first_value_for_matching_patterns(
         regex_config, full_param_name, logger
     )
-    value = value or get_first_value_for_matching_patterns(
+    if value is not None:
+        logger.info(f"Parameter {full_param_name} has a value of {value} from regex")
+        return value
+
+    value = get_first_value_for_matching_patterns(
         default_regex, full_param_name, logger
     )
-    return value
+    if value is not None:
+        logger.info(f"Parameter {full_param_name} has a value of {value} from default regex")
+    return None
 
 
 def needed_parameters_for_calling(
