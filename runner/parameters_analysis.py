@@ -352,14 +352,9 @@ def needed_parameters_for_calling(
             param_value or config_param_type or creator or connected_params or init_value
         )
 
-        if key_value_config.get(param) == "None":
+        if param_value == "None":
             final_parameter = ParameterNode(param_type, None, connected_params, creator)
-        elif (
-            key_value_config_default.get(param) == "None"
-            and key_value_config.get(param) is None
-        ):
-            final_parameter = ParameterNode(param_type, None, connected_params, creator)
-        elif param_value and not isinstance(param_value, dict):
+        elif param_value is not None and not isinstance(param_value, dict):
             final_parameter = ParameterNode(param_type, param_value, connected_params, creator)
             logger.info(f"Parameter {full_param_path} has a value of {param_value}")
         elif (
