@@ -15,5 +15,5 @@ EXPECTED_GRAPH = {
 
 
 def create_opt(node, dependencies):
-    module = dependencies.pop("runner.module")
+    module = dependencies.pop("module")
     return node.type(module.parameters(), **dependencies)
