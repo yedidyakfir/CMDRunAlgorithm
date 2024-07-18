@@ -262,6 +262,7 @@ def extract_value_from_settings(
     )
     if value is not None:
         logger.info(f"Parameter {full_param_name} has a value of {value} from default regex")
+        return value
     return None
 
 
