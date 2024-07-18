@@ -45,19 +45,19 @@ class Rules:
 
 
 def create_type_parameter(parameter_name: str):
-    return f"{parameter_name}_type"
+    return f"{parameter_name}--type"
 
 
 def create_param_creator_name(parameter_name: str):
-    return f"__{parameter_name}_creator"
+    return f"{parameter_name}--creator"
 
 
 def create_param_connection_name(parameter_name: str):
-    return f"__{parameter_name}_connected_params"
+    return f"{parameter_name}--connected_params"
 
 
 def create_param_initialize_command_name(parameter_name: str):
-    return f"__{parameter_name}_init"
+    return f"{parameter_name}--init"
 
 
 def create_const_param_name(parameter_name: str):
