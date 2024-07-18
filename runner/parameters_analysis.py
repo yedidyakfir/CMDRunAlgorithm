@@ -45,23 +45,23 @@ class Rules:
 
 
 def create_type_parameter(parameter_name: str):
-    return f"{parameter_name}--type"
+    return f"{parameter_name}__type"
 
 
 def create_param_creator_name(parameter_name: str):
-    return f"{parameter_name}--creator"
+    return f"{parameter_name}__creator"
 
 
 def create_param_connection_name(parameter_name: str):
-    return f"{parameter_name}--connected_params"
+    return f"{parameter_name}__connected_params"
 
 
 def create_param_initialize_command_name(parameter_name: str):
-    return f"{parameter_name}--init"
+    return f"{parameter_name}__init"
 
 
 def create_const_param_name(parameter_name: str):
-    return f"{parameter_name}--const"
+    return f"{parameter_name}__const"
 
 
 def create_edges_mapping_from_connection_params(connections: List[str]):
