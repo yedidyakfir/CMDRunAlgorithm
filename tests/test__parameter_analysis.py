@@ -145,6 +145,13 @@ def test__needed_parameters_for_creation__sanity():
             {"a": ParameterNode(type=MockB, value=SGD, edges={})},
         ],
         [
+            {},
+            {"a--const": "torch.optim.SGD"},
+            Rules(),
+            Rules(),
+            {"a": ParameterNode(type=int, value=SGD, edges={})},
+        ],
+        [
             {"b": 1},
             {"b": 2},
             Rules(),
@@ -224,6 +231,15 @@ def test__needed_parameters_for_creation__sanity():
         [
             {},
             {},
+            Rules(value_rules={re.compile(r"a--const$"): MockA}),
+            Rules(),
+            {
+                "a": ParameterNode(type=int, value=MockA, edges={}),
+            },
+        ],
+        [
+            {},
+            {},
             Rules(
                 value_rules={re.compile(r"b$"): 1},
                 connected_params_rules={re.compile(r"__b_connected_params$"): {"b.c": "c"}},
@@ -255,6 +271,17 @@ def test__needed_parameters_for_creation__sanity():
             ),
             {
                 "c": ParameterNode(type=SGD, value=None, edges={}, creator=func),
+            },
+        ],
+        [
+            {},
+            {},
+            Rules(),
+            Rules(
+                value_rules={re.compile("c--const"): "torch.optim.SGD"},
+            ),
+            {
+                "c": ParameterNode(type=float, value=SGD, edges={}, creator=None),
             },
         ],
     ],
