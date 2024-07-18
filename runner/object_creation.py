@@ -57,6 +57,11 @@ def create_objects(graph: ParameterGraph):
 def create_object(node: ParameterNode, dependencies: Dict[str, Any]):
     if node.value is None and node.type is None:
         return None
+    if node.value is not None and isinstance(node.value, str) and node.type != str:
+        try:
+            return node.type(node.value)
+        except ValueError:
+            pass
     return node.value or node.type(**dependencies)
 
 
