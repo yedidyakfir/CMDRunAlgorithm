@@ -60,6 +60,10 @@ def create_param_initialize_command_name(parameter_name: str):
     return f"__{parameter_name}_init"
 
 
+def create_const_param_name(parameter_name: str):
+    return f"{parameter_name}--const"
+
+
 def create_edges_mapping_from_connection_params(connections: List[str]):
     return {
         full_sub_param_name.split("->")[0]: full_sub_param_name.split("->")[1]
@@ -217,12 +221,16 @@ def cli_parameters_for_calling(
         elif typing.get_origin(param_type) == list and not need_params_for_signature(
             typing.get_args(param_type)[0], True
         ):
-            parameters.append(
-                CliParam(typing.get_args(param_type)[0], True, None, full_param_path)
-            )
+            parameters += [
+                CliParam(typing.get_args(param_type)[0], True, None, full_param_path),
+                CliParam(str, True, None, create_const_param_name(full_param_path)),
+            ]
         else:
             param_type = str if notation_belong_to_typing(param_type) else param_type
-            parameters.append(CliParam(param_type, False, None, full_param_path))
+            parameters += [
+                CliParam(param_type, False, None, full_param_path),
+                CliParam(str, False, None, create_const_param_name(full_param_path)),
+            ]
     return parameters
 
 
@@ -250,16 +258,12 @@ def extract_value_from_settings(
         logger.info(f"Parameter {full_param_name} has a value of {value} from default config")
         return value
 
-    value = get_first_value_for_matching_patterns(
-        regex_config, full_param_name, logger
-    )
+    value = get_first_value_for_matching_patterns(regex_config, full_param_name, logger)
     if value is not None:
         logger.info(f"Parameter {full_param_name} has a value of {value} from regex")
         return value
 
-    value = get_first_value_for_matching_patterns(
-        default_regex, full_param_name, logger
-    )
+    value = get_first_value_for_matching_patterns(default_regex, full_param_name, logger)
     if value is not None:
         logger.info(f"Parameter {full_param_name} has a value of {value} from default regex")
         return value
