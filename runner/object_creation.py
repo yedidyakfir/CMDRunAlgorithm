@@ -47,7 +47,7 @@ def create_objects(graph: ParameterGraph):
 
     for node_key in order:
         node = graph[node_key]
-        dependencies = {neighbor: created_objects[neighbor] for neighbor in node.edges}
+        dependencies = {node.edges[neighbor]: created_objects[neighbor] for neighbor in node.edges}
         creator = node.creator or create_object
         created_objects[node_key] = creator(node, dependencies)
 
@@ -57,9 +57,7 @@ def create_objects(graph: ParameterGraph):
 def create_object(node: ParameterNode, dependencies: Dict[str, Any]):
     if node.value is None and node.type is None:
         return None
-    return node.value or node.type(
-        **{param_name: dependencies[edge] for edge, param_name in node.edges.items()}
-    )
+    return node.value or node.type(**dependencies)
 
 
 def only_creation_relevant_parameters_from_created(created: Dict[str, Any]):
