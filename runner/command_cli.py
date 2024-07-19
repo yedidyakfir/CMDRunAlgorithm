@@ -12,7 +12,7 @@ from runner.utils.click import convert_assign_to_pattern
 from runner.utils.click import create_assigner_option
 
 
-class RunCLIAlgorithm(MultiCommand):
+class RunCallableCLI(MultiCommand):
     def __init__(
         self,
         callables: Dict[str, Tuple[type, str]],
@@ -113,7 +113,7 @@ def run_class(*args, callback, **kwargs):
     callback(*args, runner=run, **kwargs)
 
 
-class RunnerWithCLI(RunCLIAlgorithm):
+class RunnerWithCLI(RunCallableCLI):
     def __init__(self, *args, command_runner, **kwargs):
         self.user_func = command_runner
         callback = functools.partial(run_class, callback=command_runner)
@@ -138,7 +138,7 @@ class RunCLIAlgorithm(RunnerWithCLI):
         super().__init__(*args, callables=commands, **kwargs)
 
 
-class RunCLIAlgorithmFromModule(RunCLIAlgorithm):
+class RunCLIAlgorithmFromModule(RunCallableCLI):
     def __init__(self, module: ModuleType, base_type: type, *args, **kwargs):
         algorithms = {klass.__name__: klass for klass in find_subclasses(module, base_type)}
         super().__init__(algorithms, *args, module=module, **kwargs)
