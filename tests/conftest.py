@@ -1,13 +1,10 @@
+import tests.mock_module.a
 from torch.optim import SGD
 
 from runner.object_creation import ParameterNode
 from tests.mock_module.a import MockB, MockD
 from tests.mock_module.sub_mock_module.b import BasicNet
-
-
-def create_opt(node, dependencies):
-    module = dependencies.pop("module")
-    return node.type(module.parameters(), **dependencies)
+from tests.mock_module.utils import create_opt
 
 
 EXPECTED_GRAPH = {
@@ -17,5 +14,4 @@ EXPECTED_GRAPH = {
     "b": ParameterNode(type=str, value="bbb", edges={}),
     "c": ParameterNode(type=BasicNet, value=None, edges={}),
     "f": ParameterNode(type=MockD, value=None, edges={}),
-    "f.a": ParameterNode(type=int, value=12, edges={}),
 }

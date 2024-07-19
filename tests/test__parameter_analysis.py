@@ -15,10 +15,11 @@ from runner.parameters_analysis import (
     Rules,
 )
 from tests import mock_module
-from tests.conftest import EXPECTED_GRAPH, create_opt
-from tests.mock_module.a import MockA, MockB
-from tests.mock_module.sub_mock_module.b import MockC, MockE, MockG, MockF
+from tests.conftest import EXPECTED_GRAPH
+from tests.mock_module.a import MockA, MockB, MockD
+from tests.mock_module.sub_mock_module.b import MockC, MockE, MockG, MockF, BasicNet
 from tests.mock_module.utils import func
+from tests.mock_module.utils import create_opt
 
 
 @pytest.mark.parametrize(
@@ -97,13 +98,18 @@ def test__needed_parameters_for_creation__sanity():
     # Arrange
     key_value_config = {
         "a__type": "MockB",
-        "a": {"b__type": "torch.optim.SGD", "a": "None"},
+        "a": {
+            "b__type": "torch.optim.SGD",
+            "a": "None",
+            "a.b__connected_params": ["c->module"],
+            "a.b__creator": "create_opt",
+        },
         "b__type": str,
-        "c": 0.1,
+        "c__type": BasicNet,
         "b": "bbb",
     }
     regex_config = Rules(
-        value_rules={re.compile(r".*\.a$"): 12}, type_rules={re.compile(r"^f__type$"): MockA}
+        value_rules={re.compile(r".*\.a$"): 12}, type_rules={re.compile(r"^f__type$"): MockD}
     )
     signature_name = "func_name"
     expected = EXPECTED_GRAPH
@@ -459,9 +465,7 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                     default=None,
                     name="opt.dampening__connected_params",
                 ),
-                CliParam(
-                    type=str, multiple=False, default=None, name="opt.dampening__creator"
-                ),
+                CliParam(type=str, multiple=False, default=None, name="opt.dampening__creator"),
                 CliParam(type=None, multiple=False, default=None, name="opt.dampening"),
                 CliParam(type=str, multiple=False, default=None, name="opt.dampening__const"),
                 CliParam(type=str, multiple=False, default=None, name="opt.weight_decay__type"),
@@ -475,7 +479,9 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                     type=str, multiple=False, default=None, name="opt.weight_decay__creator"
                 ),
                 CliParam(type=None, multiple=False, default=None, name="opt.weight_decay"),
-                CliParam(type=str, multiple=False, default=None, name="opt.weight_decay__const"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.weight_decay__const"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="opt.nesterov__type"),
                 CliParam(
                     type=str,
@@ -516,7 +522,9 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                     type=str, multiple=False, default=None, name="opt.differentiable__creator"
                 ),
                 CliParam(type=bool, multiple=False, default=None, name="opt.differentiable"),
-                CliParam(type=str, multiple=False, default=None, name="opt.differentiable__const"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.differentiable__const"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="eps__type"),
                 CliParam(type=str, multiple=True, default=None, name="eps__connected_params"),
                 CliParam(type=str, multiple=False, default=None, name="eps__creator"),

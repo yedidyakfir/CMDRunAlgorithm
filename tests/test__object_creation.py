@@ -2,9 +2,10 @@ import torch
 from torch.optim import SGD
 
 from runner.object_creation import create_objects, ParameterNode
-from tests.conftest import EXPECTED_GRAPH, create_opt
+from tests.conftest import EXPECTED_GRAPH
 from tests.mock_module.a import MockB, MockA, MockD
 from tests.mock_module.sub_mock_module.b import MockH, BasicNet
+from tests.mock_module.utils import create_opt
 
 
 def test__create_objects__non_hierarchical_graph():
@@ -52,4 +53,3 @@ def test__can_create_expected_graph():
     assert result["b"] == "bbb"
     assert isinstance(result["a"].b, SGD)
     assert isinstance(result["f"], MockD)
-    assert result["f.a"] == 12
