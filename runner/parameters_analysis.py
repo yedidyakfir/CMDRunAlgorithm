@@ -371,7 +371,7 @@ def needed_parameters_for_calling(
         )
 
         if param_value == "None":
-            final_parameter = ParameterNode(param_type, None, connected_params, creator)
+            final_parameter = ParameterNode(None, None, connected_params, creator)
         elif param_value is not None and not isinstance(param_value, dict):
             final_parameter = ParameterNode(param_type, param_value, connected_params, creator)
             logger.info(f"Parameter {full_param_path} has a value of {param_value}")
