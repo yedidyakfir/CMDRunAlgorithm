@@ -88,3 +88,7 @@ def test__run__sanity(
     find_class_by_name_mock.assert_has_calls([call(tests, class_name)])
     algorithm.func.assert_called_once_with(**call_param)
     class_mock_h.assert_called_once_with(**alg_call_param)
+
+
+def test__run__check_use_conifg():
+    pass
