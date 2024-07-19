@@ -1,6 +1,6 @@
 import functools
 from types import ModuleType
-from typing import Callable, List, Optional, Dict, Tuple
+from typing import Callable, List, Optional, Dict, Tuple, Any
 
 import click
 from click import MultiCommand, Context, Command, Option
@@ -19,6 +19,12 @@ class RunCLIAlgorithm(MultiCommand):
         command_runner: Callable,
         add_options_from_outside_packages: bool,
         module: ModuleType,
+        default_config: Dict[str, Any],
+        default_assign_value: Dict[str, Any],
+        default_assign_type: Dict[str, Any],
+        default_assign_creator: Dict[str, Any],
+        default_assign_connection: Dict[str, Any],
+        global_settings: Dict[str, Any],
         logger=None,
         *args,
         **kwargs,
@@ -29,6 +35,12 @@ class RunCLIAlgorithm(MultiCommand):
         self.logger = logger
         self.add_options_from_outside_packages = add_options_from_outside_packages
         self.module = module
+        self.default_config = default_config
+        self.default_assign_value = default_assign_value
+        self.default_assign_type = default_assign_type
+        self.default_assign_creator = default_assign_creator
+        self.default_assign_connection = default_assign_connection
+        self.global_settings = global_settings
 
     def list_commands(self, ctx: Context) -> List[str]:
         return list(self.callables.keys())
@@ -42,12 +54,12 @@ class RunCLIAlgorithm(MultiCommand):
                 func_name=func_name,
                 base_module=self.module,
                 add_options_from_outside_packages=self.add_options_from_outside_packages,
-                default_assign_value={},
-                default_assign_type={},
-                default_assign_creator={},
-                default_assign_connection={},
-                default_config={},
-                global_settings={},
+                default_assign_value=self.default_assign_value,
+                default_assign_type=self.default_assign_type,
+                default_assign_creator=self.default_assign_creator,
+                default_assign_connection=self.default_assign_connection,
+                default_config=self.default_config,
+                global_settings=self.global_settings,
             )
 
             init_params = cli_parameters_for_calling(
