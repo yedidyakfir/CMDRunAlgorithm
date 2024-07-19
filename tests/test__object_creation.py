@@ -3,7 +3,7 @@ from torch.optim import SGD
 
 from runner.object_creation import create_objects, ParameterNode
 from tests.conftest import EXPECTED_GRAPH, create_opt
-from tests.mock_module.a import MockB, MockA
+from tests.mock_module.a import MockB, MockA, MockD
 from tests.mock_module.sub_mock_module.b import MockH, BasicNet
 
 
@@ -48,8 +48,8 @@ def test__can_create_expected_graph():
     assert isinstance(result["a"], MockB)
     assert result["a"].a is None
     assert isinstance(result["b"], str)
-    assert result["c"] == 0.1
+    assert isinstance(result["c"], BasicNet)
     assert result["b"] == "bbb"
     assert isinstance(result["a"].b, SGD)
-    assert isinstance(result["f"], MockA)
-    assert result["f"].a == 12
+    assert isinstance(result["f"], MockD)
+    assert result["f.a"] == 12

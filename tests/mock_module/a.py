@@ -10,12 +10,14 @@ class MockBase(ABC):
 
 class MockA(MockBase, ABC):
     def __init__(self, a: int, aa: str = "aa"):
-        pass
+        self.a = a
+        self.aa = aa
 
 
 class MockB(MockBase):
     def __init__(self, a: int, b: str):
-        pass
+        self.a = a
+        self.b = b
 
     def func_name(self, e: int, f: str):
         pass
