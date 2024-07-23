@@ -31,7 +31,7 @@ def run(
     logger: Logger = None,
     **config,
 ):
-    use_logger = logger is not None
+    use_logger = logger is not None and isinstance(logger, Logger)
     logger = logger or logging.getLogger(__name__)
     if isinstance(base_module, str):
         module = __import__(base_module)
