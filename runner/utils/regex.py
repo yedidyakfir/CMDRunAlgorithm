@@ -1,3 +1,4 @@
+import re
 from logging import Logger
 from typing import Any, Dict, Pattern
 
@@ -18,3 +19,6 @@ def get_first_value_for_matching_patterns(
     if len(values) > 1:
         logger.warning(f"Multiple values found for {text} param. Using the first one.")
     return values[0] if values else None
+
+def convert_str_keys_to_pattern(d: Dict[str, Any]) -> Dict[Pattern, Any]:
+    return {re.compile(k): v for k, v in d.items()}
