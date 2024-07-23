@@ -81,6 +81,8 @@ def create_type_from_name(module: ModuleType, param_type: Any, only_class: bool 
             class_type = getattr(importlib.import_module(module_name), class_name)
         else:
             class_type = find_class_by_name(module, param_type, only_class)
+        if class_type is None:
+            class_type = eval(param_type)
     else:
         class_type = param_type
     return class_type

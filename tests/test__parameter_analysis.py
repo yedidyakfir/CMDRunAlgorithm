@@ -158,6 +158,13 @@ def test__needed_parameters_for_creation__sanity():
             {"a": ParameterNode(type=int, value=SGD, edges={})},
         ],
         [
+            {},
+            {"b__type": "float", "b": "10"},
+            Rules(),
+            Rules(),
+            {"b": ParameterNode(type=float, value="10", edges={})},
+        ],
+        [
             {"b": 1},
             {"b": 2},
             Rules(),
