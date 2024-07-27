@@ -26,6 +26,7 @@ def multiple_callbacks(ctx, param, value, callbacks):
 def ignore_emtpy_multiples(ctx, param, value):
     if param.multiple and not value:
         return None
+    return value
 
 
 def convert_param_value(ctx, param, value):
