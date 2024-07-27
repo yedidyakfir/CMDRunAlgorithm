@@ -1,5 +1,11 @@
+import importlib.util
+import json
+import os
+import sys
+
 import functools
 from types import ModuleType
+from pathlib import Path
 from typing import Callable, List, Optional, Dict, Tuple, Any
 
 import click
@@ -10,6 +16,8 @@ from runner.parameters_analysis import cli_parameters_for_calling
 from runner.run import run
 from runner.utils.click import (
     convert_param_value,
+    multiple_callbacks,
+    ignore_emtpy_multiples,
     create_assigner_option,
     ParamTrueName,
     convert_click_dict_to_nested,
@@ -111,7 +119,10 @@ class RunCallableCLI(MultiCommand):
                     multiple=param.multiple,
                     default=param.default,
                     is_flag=param.flag,
-                    callback=convert_param_value,
+                    callback=functools.partial(
+                        multiple_callbacks,
+                        callbacks=[convert_param_value, ignore_emtpy_multiples],
+                    ),
                 )
                 for param in parameters
             ]

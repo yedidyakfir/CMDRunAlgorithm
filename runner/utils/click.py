@@ -1,9 +1,11 @@
 import dataclasses
 import re
-import click
 from typing import Any
+
+import click
 from click import Option
 from runner.utils.regex import convert_str_keys_to_pattern
+
 
 @dataclasses.dataclass
 class ParamTrueName:
@@ -15,8 +17,20 @@ def convert_assign_to_pattern(ctx, param, value):
     return convert_str_keys_to_pattern(dict(value))
 
 
+def multiple_callbacks(ctx, param, value, callbacks):
+    for callback in callbacks:
+        value = callback(ctx, param, value)
+    return value
+
+
+def ignore_emtpy_multiples(ctx, param, value):
+    if param.multiple and not value:
+        return None
+
+
 def convert_param_value(ctx, param, value):
     return ParamTrueName(param.opts[-1].split("--")[-1], value)
+
 
 def convert_click_dict_to_nested(click_values) -> dict:
     nested_dict = {}
