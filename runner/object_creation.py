@@ -1,4 +1,5 @@
 import dataclasses
+import functools
 from collections import deque
 from typing import List, Any, Dict, Callable
 
@@ -14,10 +15,28 @@ class ParameterNode:
 ParameterGraph = Dict[str, ParameterNode]
 
 
+def find_closes_edge_in_nested_from_mapping(mapping: Dict[str, Any], edge: str) -> str:
+    nested_edge = edge.split(".")
+    for i in range(len(nested_edge), 0, -1):
+        inner_edge = ".".join(nested_edge[:i])
+        if inner_edge in mapping:
+            return inner_edge
+    raise ValueError(f"Edge {edge} not found in mapping")
+
+
+def get_value_from_created_objects(created: Dict[str, Any], edge: str) -> Any:
+    base_edge = find_closes_edge_in_nested_from_mapping(created, edge)
+    base_obj = created[base_edge]
+    if base_edge == edge:
+        return base_obj
+    return eval(f"base_obj.{edge[len(base_edge) + 1:]}")
+
+
 def topological_sort(graph: ParameterGraph) -> List[str]:
     in_degree = {node: 0 for node in graph}
     for node in graph.values():
         for neighbor in node.edges:
+            neighbor = find_closes_edge_in_nested_from_mapping(graph, neighbor)
             in_degree[neighbor] += 1
 
     # Initialize queue with nodes that have in-degree 0
@@ -26,10 +45,12 @@ def topological_sort(graph: ParameterGraph) -> List[str]:
     topological_order = []
     while queue:
         node_key = queue.popleft()
+        node_key = find_closes_edge_in_nested_from_mapping(graph, node_key)
         node = graph[node_key]
         topological_order.append(node_key)
 
         for neighbor in node.edges:
+            neighbor = find_closes_edge_in_nested_from_mapping(graph, neighbor)
             in_degree[neighbor] -= 1
             if in_degree[neighbor] == 0:
                 queue.append(neighbor)
@@ -46,7 +67,10 @@ def create_objects(graph: ParameterGraph):
 
     for node_key in order:
         node = graph[node_key]
-        dependencies = {node.edges[neighbor]: created_objects[neighbor] for neighbor in node.edges}
+        dependencies = {
+            node.edges[neighbor]: get_value_from_created_objects(created_objects, neighbor)
+            for neighbor in node.edges
+        }
         creator = node.creator or create_object
         created_objects[node_key] = creator(node, dependencies)
 

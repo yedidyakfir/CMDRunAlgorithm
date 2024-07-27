@@ -22,6 +22,11 @@ def test__create_objects__non_hierarchical_graph():
         ),
         "runner.eps": ParameterNode(type=list, value=eps, edges={}),
         "runner.module": ParameterNode(type=BasicNet, value=None, edges={}),
+        "runner2": ParameterNode(
+            type=MockH,
+            value=None,
+            edges={"runner.opt": "opt", "runner.eps[1]": "eps", "runner.module.linear": "module"},
+        ),
     }
 
     # Act
@@ -39,6 +44,8 @@ def test__create_objects__non_hierarchical_graph():
             assert torch.equal(opt_param, param)
         else:
             assert opt_param == param
+    assert result["runner2"].module == result["runner"].module.linear
+    assert result["runner2"].eps == eps[1]
 
 
 def test__can_create_expected_graph():
