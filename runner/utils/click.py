@@ -24,11 +24,18 @@ def multiple_callbacks(ctx, param, value, callbacks):
 
 
 def ignore_emtpy_multiples(ctx, param, value):
-    if param.multiple and not value:
-        return None
+    if param.multiple:
+        if isinstance(value, ParamTrueName):
+            true_value = value.value
+        else:
+            true_value = value
+        if not true_value:
+            return None
     return value
 
 
+# This enable me to find what is a name and what is a nested value
+# (for example opt.lr will should be represented as opt-lr, not opt_lr)
 def convert_param_value(ctx, param, value):
     return ParamTrueName(param.opts[-1].split("--")[-1], value)
 
