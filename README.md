@@ -10,11 +10,11 @@ Notes:
 
 
 ## Future features:
+- allow multiple modules to serach in
+- we need a way to pick different option for maniuplation parameters with functions, maybe creators?
 - Create a nested structure to analyze the correct data type. Supporting nested types (Optional, Union, List etc)
-- Allow user to create a connection from inner parameter that was not directly created.
-<br>for example, if I need a.b.c->model and I just created a, I dont want to create a special creator for this. make a way to take the inside of a and pass it to the creator
 - how to manipulate the class, like setting the start point?
-- add settings and default config
+- add option to request parameters for additional function (like user who wants to activate egl.train) inside another function
 
 ### cli features
 - always run a specific function and a specific class
@@ -23,3 +23,7 @@ Notes:
 
 - create a module script to run code, (the script should pick a function or a class to run using python -m) 
 - create docs for usage in packge
+- The config is in a list and not hierarchy, is there a way to convert it?
+
+### Tests
+- add test for run function for use_config option

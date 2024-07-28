@@ -23,21 +23,21 @@ def test__RunCLIAlgorithm__sanity():
         "a": 1,
         "f": "2",
         "a__type": None,
-        "a__connected_params": (),
+        "a__connected_params": None,
         "a__creator": None,
         "a__const": None,
         "b__type": None,
-        "b__connected_params": (),
+        "b__connected_params": None,
         "b__creator": None,
         "b": None,
         "b__const": None,
         "e__type": None,
-        "e__connected_params": (),
+        "e__connected_params": None,
         "e__creator": None,
         "e": None,
         "e__const": None,
         "f__type": None,
-        "f__connected_params": (),
+        "f__connected_params": None,
         "f__creator": None,
         "f__const": None,
         "assign_value": {},
@@ -84,4 +84,12 @@ def test__run_cli_callable__settings_and_config():
 
 
 def test__run_cli_callable__use_config_check():
+    pass
+
+
+def test__cli_initialiation_by_other_classes__sanity():
+    pass
+
+
+def test__cli__nested_parameter_maniuplation():
     pass
