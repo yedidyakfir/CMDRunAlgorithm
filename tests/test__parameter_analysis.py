@@ -3,6 +3,7 @@ import re
 from unittest.mock import MagicMock
 
 import pytest
+import torch
 from torch.optim import Adam, SGD
 
 from runner.object_creation import ParameterNode
@@ -17,9 +18,8 @@ from runner.parameters_analysis import (
 from tests import mock_module
 from tests.conftest import EXPECTED_GRAPH
 from tests.mock_module.a import MockA, MockB, MockD
-from tests.mock_module.sub_mock_module.b import MockC, MockE, MockG, MockF, BasicNet
+from tests.mock_module.sub_mock_module.b import MockC, MockE, MockG, MockF, BasicNet, MockH
 from tests.mock_module.utils import func
-from tests.mock_module.utils import create_opt
 
 
 @pytest.mark.parametrize(
@@ -35,7 +35,9 @@ from tests.mock_module.utils import create_opt
         (Adam, False, False),
     ],
 )
-def test__need_params_for_signature__sanity(obj, add_options_from_outside_packages, expected):
+def test__need_params_for_signature__sanity(
+    obj, add_options_from_outside_packages, expected
+):
     # Arrange
     if (
         inspect.isclass(obj)
@@ -56,9 +58,15 @@ def test__get_full_signature_parameters__sanity():
 
     # Assert
     assert result == {
-        "a": inspect.Parameter("a", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int),
-        "b": inspect.Parameter("b", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=str),
-        "c": inspect.Parameter("c", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=float),
+        "a": inspect.Parameter(
+            "a", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int
+        ),
+        "b": inspect.Parameter(
+            "b", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=str
+        ),
+        "c": inspect.Parameter(
+            "c", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=float
+        ),
     }
 
 
@@ -71,8 +79,12 @@ def test__get_full_signature_parameters__new_function():
         "self": inspect.Parameter("self", inspect.Parameter.POSITIONAL_OR_KEYWORD),
         "args": inspect.Parameter("args", inspect.Parameter.VAR_POSITIONAL),
         "kwargs": inspect.Parameter("kwargs", inspect.Parameter.VAR_KEYWORD),
-        "a": inspect.Parameter("a", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int),
-        "b": inspect.Parameter("b", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=MockA),
+        "a": inspect.Parameter(
+            "a", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int
+        ),
+        "b": inspect.Parameter(
+            "b", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=MockA
+        ),
         "c": inspect.Parameter(
             "c", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=float, default=0.2
         ),
@@ -82,7 +94,9 @@ def test__get_full_signature_parameters__new_function():
 def test__get_full_signature_parameters__stops_at_class_with_no_signature_name():
     # Arrange
     expected = {
-        "dd": inspect.Parameter("dd", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int),
+        "dd": inspect.Parameter(
+            "dd", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=int
+        ),
         "self": inspect.Parameter("self", inspect.Parameter.POSITIONAL_OR_KEYWORD),
         "kwargs": inspect.Parameter("kwargs", inspect.Parameter.VAR_KEYWORD),
     }
@@ -101,15 +115,16 @@ def test__needed_parameters_for_creation__sanity():
         "a": {
             "b__type": "torch.optim.SGD",
             "a": "None",
-            "a.b__connected_params": ["c->module"],
-            "a.b__creator": "create_opt",
+            "b__connected_params": ["c->module"],
+            "b__creator": "create_opt",
         },
         "b__type": str,
         "c__type": BasicNet,
         "b": "bbb",
     }
     regex_config = Rules(
-        value_rules={re.compile(r".*\.a$"): 12}, type_rules={re.compile(r"^f__type$"): MockD}
+        value_rules={re.compile(r".*\.a$"): 12},
+        type_rules={re.compile(r"^f__type$"): MockD},
     )
     signature_name = "func_name"
     expected = EXPECTED_GRAPH
@@ -136,6 +151,68 @@ def test__needed_parameters_for_creation__sanity():
 @pytest.mark.parametrize(
     ["default_config", "config", "default_rules", "rules", "expected"],
     [
+        [
+            {
+                "a__type": "MockB",
+                "a": {"b__type": "torch.optim.SGD", "b": {"lr": 0.001}},
+                "b": {"a__const": "0.002"},
+            },
+            {
+                "b__type": "MockH",
+                "b": {
+                    "opt__connected_params": {"a.b": "a"},
+                    "module__const": "torch.optim.SGD",
+                },
+            },
+            Rules(
+                type_rules={re.compile(r"b__type$"): "MockA"},
+                value_rules={
+                    re.compile(r"b\.a\.lr$"): 0.01,
+                    re.compile(r"b\.eps$"): "final",
+                },
+            ),
+            Rules(
+                connected_params_rules={
+                    re.compile(r"a.a__connected_params$"): {"b.opt": "opt"}
+                }
+            ),
+            {
+                "a": ParameterNode(
+                    type=MockB,
+                    value=None,
+                    edges={"a.b": "b", "a.b.lr": "lr"},
+                    creator=None,
+                ),
+                "a.b": ParameterNode(
+                    type=torch.optim.SGD,
+                    value=None,
+                    edges={"a.b.lr": "lr"},
+                    creator=None,
+                ),
+                "a.b.lr": ParameterNode(type=None, value=0.001, edges={}, creator=None),
+                "b": ParameterNode(
+                    type=MockH,
+                    value=None,
+                    edges={"b.eps": "eps", "b.module": "module", "b.opt": "opt"},
+                    creator=None,
+                ),
+                "b.eps": ParameterNode(
+                    type=None, value="final", edges={}, creator=None
+                ),
+                "b.module": ParameterNode(
+                    type=BasicNet,
+                    value=torch.optim.SGD,
+                    edges={},
+                    creator=None,
+                ),
+                "b.opt": ParameterNode(
+                    type=torch.optim.SGD,
+                    value=None,
+                    edges={"a.b": "b"},
+                    creator=None,
+                ),
+            },
+        ],
         [
             {"a__type": "torch.optim.SGD"},
             {"a__type": "MockB"},
@@ -210,7 +287,10 @@ def test__needed_parameters_for_creation__sanity():
         ],
         [
             {},
-            {"c__type": "torch.optim.SGD", "c__creator": "tests.mock_module.utils.func"},
+            {
+                "c__type": "torch.optim.SGD",
+                "c__creator": "tests.mock_module.utils.func",
+            },
             Rules(),
             Rules(),
             {
@@ -255,7 +335,9 @@ def test__needed_parameters_for_creation__sanity():
             {},
             Rules(
                 value_rules={re.compile(r"b$"): 1},
-                connected_params_rules={re.compile(r"b__connected_params$"): {"b.c": "c"}},
+                connected_params_rules={
+                    re.compile(r"b__connected_params$"): {"b.c": "c"}
+                },
             ),
             Rules(),
             {
@@ -267,7 +349,9 @@ def test__needed_parameters_for_creation__sanity():
             {},
             Rules(
                 type_rules={re.compile("c__type"): "torch.optim.SGD"},
-                connected_params_rules={re.compile("c__connected_params"): {"b.c": "c"}},
+                connected_params_rules={
+                    re.compile("c__connected_params"): {"b.c": "c"}
+                },
             ),
             Rules(),
             {
@@ -280,7 +364,9 @@ def test__needed_parameters_for_creation__sanity():
             Rules(),
             Rules(
                 type_rules={re.compile("c__type"): "torch.optim.SGD"},
-                creator_rules={re.compile("c__creator"): "tests.mock_module.utils.func"},
+                creator_rules={
+                    re.compile("c__creator"): "tests.mock_module.utils.func"
+                },
             ),
             {
                 "c": ParameterNode(type=SGD, value=None, edges={}, creator=func),
@@ -351,7 +437,9 @@ def test__needed_parameters_for_creation__warning_for_unmatching_value_and_type(
 
 def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
     # Arrange
-    regex_config = Rules(value_rules={re.compile(r".*\.a$"): 12, re.compile(r"^b\.a$"): MockA})
+    regex_config = Rules(
+        value_rules={re.compile(r".*\.a$"): 12, re.compile(r"^b\.a$"): MockA}
+    )
     logger = MagicMock()
 
     # Act
@@ -380,12 +468,16 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
             True,
             [
                 CliParam(type=str, multiple=False, default=None, name="a__type"),
-                CliParam(type=str, multiple=True, default=None, name="a__connected_params"),
+                CliParam(
+                    type=str, multiple=True, default=None, name="a__connected_params"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="a__creator"),
                 CliParam(type=int, multiple=False, default=None, name="a"),
                 CliParam(type=str, multiple=False, default=None, name="a__const"),
                 CliParam(type=str, multiple=False, default=None, name="b__type"),
-                CliParam(type=str, multiple=True, default=None, name="b__connected_params"),
+                CliParam(
+                    type=str, multiple=True, default=None, name="b__connected_params"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="b__creator"),
                 CliParam(type=str, multiple=False, default=None, name="b"),
                 CliParam(type=str, multiple=False, default=None, name="b__const"),
@@ -397,36 +489,52 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
             True,
             [
                 CliParam(type=str, multiple=False, default=None, name="e__type"),
-                CliParam(type=str, multiple=True, default=None, name="e__connected_params"),
+                CliParam(
+                    type=str, multiple=True, default=None, name="e__connected_params"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="e__creator"),
                 CliParam(type=int, multiple=False, default=None, name="e"),
                 CliParam(type=str, multiple=False, default=None, name="e__const"),
                 CliParam(type=str, multiple=False, default=None, name="f__type"),
-                CliParam(type=str, multiple=True, default=None, name="f__connected_params"),
+                CliParam(
+                    type=str, multiple=True, default=None, name="f__connected_params"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="f__creator"),
                 CliParam(type=str, multiple=False, default=None, name="f"),
                 CliParam(type=str, multiple=False, default=None, name="f__const"),
                 CliParam(type=str, multiple=False, default=None, name="a__type"),
-                CliParam(type=str, multiple=True, default=None, name="a__connected_params"),
+                CliParam(
+                    type=str, multiple=True, default=None, name="a__connected_params"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="a__creator"),
                 CliParam(type=int, multiple=False, default=None, name="a"),
                 CliParam(type=str, multiple=False, default=None, name="a__const"),
                 CliParam(type=str, multiple=False, default=None, name="b__type"),
-                CliParam(type=str, multiple=True, default=None, name="b__connected_params"),
+                CliParam(
+                    type=str, multiple=True, default=None, name="b__connected_params"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="b__creator"),
-                CliParam(type=bool, multiple=False, default=None, name="b__init", flag=True),
+                CliParam(
+                    type=bool, multiple=False, default=None, name="b__init", flag=True
+                ),
                 CliParam(type=str, multiple=False, default=None, name="b.a__type"),
-                CliParam(type=str, multiple=True, default=None, name="b.a__connected_params"),
+                CliParam(
+                    type=str, multiple=True, default=None, name="b.a__connected_params"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="b.a__creator"),
                 CliParam(type=int, multiple=False, default=None, name="b.a"),
                 CliParam(type=str, multiple=False, default=None, name="b.a__const"),
                 CliParam(type=str, multiple=False, default=None, name="b.aa__type"),
-                CliParam(type=str, multiple=True, default=None, name="b.aa__connected_params"),
+                CliParam(
+                    type=str, multiple=True, default=None, name="b.aa__connected_params"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="b.aa__creator"),
                 CliParam(type=str, multiple=False, default=None, name="b.aa"),
                 CliParam(type=str, multiple=False, default=None, name="b.aa__const"),
                 CliParam(type=str, multiple=False, default=None, name="c__type"),
-                CliParam(type=str, multiple=True, default=None, name="c__connected_params"),
+                CliParam(
+                    type=str, multiple=True, default=None, name="c__connected_params"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="c__creator"),
                 CliParam(type=float, multiple=False, default=None, name="c"),
                 CliParam(type=str, multiple=False, default=None, name="c__const"),
@@ -438,44 +546,82 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
             True,
             [
                 CliParam(type=str, multiple=False, default=None, name="opt__type"),
-                CliParam(type=str, multiple=True, default=None, name="opt__connected_params"),
-                CliParam(type=str, multiple=False, default=None, name="opt__creator"),
-                CliParam(type=bool, multiple=False, default=None, name="opt__init", flag=True),
-                CliParam(type=str, multiple=False, default=None, name="opt.params__type"),
                 CliParam(
-                    type=str, multiple=True, default=None, name="opt.params__connected_params"
+                    type=str, multiple=True, default=None, name="opt__connected_params"
                 ),
-                CliParam(type=str, multiple=False, default=None, name="opt.params__creator"),
+                CliParam(type=str, multiple=False, default=None, name="opt__creator"),
+                CliParam(
+                    type=bool, multiple=False, default=None, name="opt__init", flag=True
+                ),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.params__type"
+                ),
+                CliParam(
+                    type=str,
+                    multiple=True,
+                    default=None,
+                    name="opt.params__connected_params",
+                ),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.params__creator"
+                ),
                 CliParam(type=None, multiple=False, default=None, name="opt.params"),
-                CliParam(type=str, multiple=False, default=None, name="opt.params__const"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.params__const"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="opt.lr__type"),
                 CliParam(
-                    type=str, multiple=True, default=None, name="opt.lr__connected_params"
+                    type=str,
+                    multiple=True,
+                    default=None,
+                    name="opt.lr__connected_params",
                 ),
-                CliParam(type=str, multiple=False, default=None, name="opt.lr__creator"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.lr__creator"
+                ),
                 CliParam(type=None, multiple=False, default=None, name="opt.lr"),
                 CliParam(type=str, multiple=False, default=None, name="opt.lr__const"),
-                CliParam(type=str, multiple=False, default=None, name="opt.momentum__type"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.momentum__type"
+                ),
                 CliParam(
                     type=str,
                     multiple=True,
                     default=None,
                     name="opt.momentum__connected_params",
                 ),
-                CliParam(type=str, multiple=False, default=None, name="opt.momentum__creator"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.momentum__creator"
+                ),
                 CliParam(type=None, multiple=False, default=None, name="opt.momentum"),
-                CliParam(type=str, multiple=False, default=None, name="opt.momentum__const"),
-                CliParam(type=str, multiple=False, default=None, name="opt.dampening__type"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.momentum__const"
+                ),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.dampening__type"
+                ),
                 CliParam(
                     type=str,
                     multiple=True,
                     default=None,
                     name="opt.dampening__connected_params",
                 ),
-                CliParam(type=str, multiple=False, default=None, name="opt.dampening__creator"),
+                CliParam(
+                    type=str,
+                    multiple=False,
+                    default=None,
+                    name="opt.dampening__creator",
+                ),
                 CliParam(type=None, multiple=False, default=None, name="opt.dampening"),
-                CliParam(type=str, multiple=False, default=None, name="opt.dampening__const"),
-                CliParam(type=str, multiple=False, default=None, name="opt.weight_decay__type"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.dampening__const"
+                ),
+                CliParam(
+                    type=str,
+                    multiple=False,
+                    default=None,
+                    name="opt.weight_decay__type",
+                ),
                 CliParam(
                     type=str,
                     multiple=True,
@@ -483,41 +629,73 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                     name="opt.weight_decay__connected_params",
                 ),
                 CliParam(
-                    type=str, multiple=False, default=None, name="opt.weight_decay__creator"
+                    type=str,
+                    multiple=False,
+                    default=None,
+                    name="opt.weight_decay__creator",
                 ),
-                CliParam(type=None, multiple=False, default=None, name="opt.weight_decay"),
                 CliParam(
-                    type=str, multiple=False, default=None, name="opt.weight_decay__const"
+                    type=None, multiple=False, default=None, name="opt.weight_decay"
                 ),
-                CliParam(type=str, multiple=False, default=None, name="opt.nesterov__type"),
+                CliParam(
+                    type=str,
+                    multiple=False,
+                    default=None,
+                    name="opt.weight_decay__const",
+                ),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.nesterov__type"
+                ),
                 CliParam(
                     type=str,
                     multiple=True,
                     default=None,
                     name="opt.nesterov__connected_params",
                 ),
-                CliParam(type=str, multiple=False, default=None, name="opt.nesterov__creator"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.nesterov__creator"
+                ),
                 CliParam(type=None, multiple=False, default=None, name="opt.nesterov"),
-                CliParam(type=str, multiple=False, default=None, name="opt.nesterov__const"),
-                CliParam(type=str, multiple=False, default=None, name="opt.maximize__type"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.nesterov__const"
+                ),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.maximize__type"
+                ),
                 CliParam(
                     type=str,
                     multiple=True,
                     default=None,
                     name="opt.maximize__connected_params",
                 ),
-                CliParam(type=str, multiple=False, default=None, name="opt.maximize__creator"),
-                CliParam(type=bool, multiple=False, default=None, name="opt.maximize"),
-                CliParam(type=str, multiple=False, default=None, name="opt.maximize__const"),
-                CliParam(type=str, multiple=False, default=None, name="opt.foreach__type"),
                 CliParam(
-                    type=str, multiple=True, default=None, name="opt.foreach__connected_params"
+                    type=str, multiple=False, default=None, name="opt.maximize__creator"
                 ),
-                CliParam(type=str, multiple=False, default=None, name="opt.foreach__creator"),
-                CliParam(type=None, multiple=False, default=None, name="opt.foreach"),
-                CliParam(type=str, multiple=False, default=None, name="opt.foreach__const"),
+                CliParam(type=bool, multiple=False, default=None, name="opt.maximize"),
                 CliParam(
-                    type=str, multiple=False, default=None, name="opt.differentiable__type"
+                    type=str, multiple=False, default=None, name="opt.maximize__const"
+                ),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.foreach__type"
+                ),
+                CliParam(
+                    type=str,
+                    multiple=True,
+                    default=None,
+                    name="opt.foreach__connected_params",
+                ),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.foreach__creator"
+                ),
+                CliParam(type=None, multiple=False, default=None, name="opt.foreach"),
+                CliParam(
+                    type=str, multiple=False, default=None, name="opt.foreach__const"
+                ),
+                CliParam(
+                    type=str,
+                    multiple=False,
+                    default=None,
+                    name="opt.differentiable__type",
                 ),
                 CliParam(
                     type=str,
@@ -526,14 +704,24 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
                     name="opt.differentiable__connected_params",
                 ),
                 CliParam(
-                    type=str, multiple=False, default=None, name="opt.differentiable__creator"
+                    type=str,
+                    multiple=False,
+                    default=None,
+                    name="opt.differentiable__creator",
                 ),
-                CliParam(type=bool, multiple=False, default=None, name="opt.differentiable"),
                 CliParam(
-                    type=str, multiple=False, default=None, name="opt.differentiable__const"
+                    type=bool, multiple=False, default=None, name="opt.differentiable"
+                ),
+                CliParam(
+                    type=str,
+                    multiple=False,
+                    default=None,
+                    name="opt.differentiable__const",
                 ),
                 CliParam(type=str, multiple=False, default=None, name="eps__type"),
-                CliParam(type=str, multiple=True, default=None, name="eps__connected_params"),
+                CliParam(
+                    type=str, multiple=True, default=None, name="eps__connected_params"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="eps__creator"),
                 CliParam(type=None, multiple=False, default=None, name="eps"),
                 CliParam(type=str, multiple=False, default=None, name="eps__const"),
@@ -545,7 +733,9 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
             True,
             [
                 CliParam(type=str, multiple=False, default=None, name="opt__type"),
-                CliParam(type=str, multiple=True, default=None, name="opt__connected_params"),
+                CliParam(
+                    type=str, multiple=True, default=None, name="opt__connected_params"
+                ),
                 CliParam(type=str, multiple=False, default=None, name="opt__creator"),
                 CliParam(type=None, multiple=False, default=None, name="opt"),
                 CliParam(type=str, multiple=False, default=None, name="opt__const"),
@@ -553,9 +743,13 @@ def test__needed_parameters_for_creation__warning_fur_multiple_matching_rules():
         ],
     ],
 )
-def test__cli_parameters_for_calling__sanity(klass, signature_name, outside_classes, expected):
+def test__cli_parameters_for_calling__sanity(
+    klass, signature_name, outside_classes, expected
+):
     # Act
-    results = cli_parameters_for_calling(klass, signature_name, outside_classes, mock_module)
+    results = cli_parameters_for_calling(
+        klass, signature_name, outside_classes, mock_module
+    )
 
     # Assert
     assert results == expected
