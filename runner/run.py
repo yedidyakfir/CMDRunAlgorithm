@@ -85,7 +85,7 @@ def run(
         add_options_from_outside_packages,
         logger=logger,
     )
-    run_parameters = create_objects(train_parameters_graph)
+    run_parameters = create_objects(train_parameters_graph, init_params)
     func_parameters = only_creation_relevant_parameters_from_created(run_parameters)
     function = getattr(algorithm, func_name)
 

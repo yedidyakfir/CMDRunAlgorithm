@@ -15,13 +15,25 @@ class ParameterNode:
 ParameterGraph = Dict[str, ParameterNode]
 
 
-def find_closes_edge_in_nested_from_mapping(mapping: Dict[str, Any], edge: str) -> str:
+def search_close_edge_in_data(mapping: Dict[str, Any], edge: str) -> str:
     nested_edge = edge.split(".")
     for i in range(len(nested_edge), 0, -1):
         inner_edge = ".".join(nested_edge[:i])
         if inner_edge in mapping:
             return inner_edge
-    raise ValueError(f"Edge {edge} not found in mapping")
+    return None
+
+
+def find_closes_edge_in_nested_from_mapping(
+    mapping: Dict[str, Any], edge: str, additional_nodes: Dict[str, Any] = None
+) -> str:
+    additional_nodes = additional_nodes or {}
+    inner_edge = search_close_edge_in_data(mapping, edge)
+    if not inner_edge:
+        inner_edge = search_close_edge_in_data(additional_nodes, edge)
+    if not inner_edge:
+        raise ValueError(f"Edge {edge} not found in mapping")
+    return inner_edge
 
 
 def get_value_from_created_objects(created: Dict[str, Any], edge: str) -> Any:
@@ -32,13 +44,23 @@ def get_value_from_created_objects(created: Dict[str, Any], edge: str) -> Any:
     return eval(f"base_obj.{edge[len(base_edge) + 1:]}")
 
 
-def topological_sort(graph: ParameterGraph) -> List[str]:
+def topological_sort(
+    graph: ParameterGraph, additional_nodes: Dict[str, Any]
+) -> List[str]:
     in_degree = {node: 0 for node in graph}
-    for node in graph.values():
+    nodes = list(graph.values())
+    for node in nodes[:]:
         for neighbor in node.edges:
-            neighbor = find_closes_edge_in_nested_from_mapping(graph, neighbor)
-            in_degree[neighbor] += 1
-
+            neighbor = find_closes_edge_in_nested_from_mapping(
+                graph, neighbor , additional_nodes
+            )
+            if neighbor not in graph and neighbor in additional_nodes:
+                graph[neighbor] = ParameterNode(
+                    value=additional_nodes[neighbor], type=None, edges={}
+                )
+                in_degree[neighbor] = 1
+            else:
+                in_degree[neighbor] += 1
     # Initialize queue with nodes that have in-degree 0
     queue = deque([node for node in graph if in_degree[node] == 0])
 
@@ -61,14 +83,19 @@ def topological_sort(graph: ParameterGraph) -> List[str]:
     return list(reversed(topological_order))
 
 
-def create_objects(graph: ParameterGraph):
-    order = topological_sort(graph)
+def create_objects(
+    graph: ParameterGraph, additional_objects: Dict[str, Any] = None
+) -> Dict[str, Any]:
+    additional_objects = additional_objects or {}
+    order = topological_sort(graph, additional_objects)
     created_objects = {}
 
     for node_key in order:
         node = graph[node_key]
         dependencies = {
-            node.edges[neighbor]: get_value_from_created_objects(created_objects, neighbor)
+            node.edges[neighbor]: get_value_from_created_objects(
+                created_objects, neighbor
+            )
             for neighbor in node.edges
         }
         creator = node.creator or create_object
