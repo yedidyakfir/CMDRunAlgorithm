@@ -4,6 +4,7 @@ import inspect
 import logging
 import typing
 from collections import defaultdict
+from collections import deque
 from dataclasses import field
 from logging import Logger
 from types import ModuleType
@@ -481,3 +482,36 @@ def needed_parameters_for_calling(
         if final_parameter:
             parameters[full_param_path] = final_parameter
     return parameters
+
+
+def find_missing_vertaxes(graph: ParameterGraph):
+    connected_params_in_graph = deque(
+        [connected_param for node in graph for connected_param in node.connected_params]
+    )
+    while connected_params_in_graph:
+        edge = connected_params_in_graph.popleft()
+        if edge not in graph:
+            (
+                full_param_path,
+                param_type,
+                param_value,
+                connected_params,
+                creator,
+                init_value,
+                param_mentioned_by_user,
+            ) = extract_values_for_param(
+                edge,
+                None,
+                key_value_config_default,
+                key_value_config,
+                regex_config_default,
+                regex_config,
+                base_module,
+                add_options_from_outside_packages,
+                initials,
+            )
+            graph[edge] = ParameterNode(
+                param_type, param_value, connected_params, creator
+            )
+            connected_params_in_graph.extend(connected_params)
+    return graph
