@@ -8,7 +8,9 @@ from typing import List, Any, Dict, Callable
 class ParameterNode:
     type: type  # This is needed only for creating the class, We need to understand what to do with typing module
     value: Any
-    edges: Dict[str, str]  # Maps from edge path to parameter name as it is used in the class
+    edges: Dict[
+        str, str
+    ]  # Maps from edge path to parameter name as it is used in the class
     creator: Callable = None
 
 

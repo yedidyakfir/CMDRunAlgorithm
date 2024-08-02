@@ -101,7 +101,9 @@ def extract_type_from_annotation(annotation):
     return annotation
 
 
-def need_params_for_signature(obj: Any, add_options_from_outside_packages: bool) -> bool:
+def need_params_for_signature(
+    obj: Any, add_options_from_outside_packages: bool
+) -> bool:
     if not inspect.isclass(obj) or obj in PRIMITIVES:
         return False
     try:
@@ -149,7 +151,9 @@ def get_full_signature_parameters(
         needs_parent_class = (
             issubclass(parent_class, base_klass)
             if base_klass
-            else need_params_for_signature(parent_class, add_options_from_outside_packages)
+            else need_params_for_signature(
+                parent_class, add_options_from_outside_packages
+            )
         )
         if needs_parent_class:
             parameters.update(
@@ -189,7 +193,9 @@ def cli_parameters_for_calling(
     logger: Logger = None,
 ) -> List[CliParam]:
     parameters = []
-    for param, value in get_full_signature_parameters(klass, None, signature_name).items():
+    for param, value in get_full_signature_parameters(
+        klass, None, signature_name
+    ).items():
         if (
             value.kind == inspect.Parameter.VAR_POSITIONAL
             or value.kind == inspect.Parameter.VAR_KEYWORD
@@ -251,7 +257,9 @@ def extract_value_from_settings(
     logger: Logger,
 ):
     full_param_name = f"{initials}{param_name}"
-    value = key_value_config.get(param_name) if isinstance(key_value_config, dict) else None
+    value = (
+        key_value_config.get(param_name) if isinstance(key_value_config, dict) else None
+    )
     if value is not None:
         logger.info(f"Parameter {full_param_name} has a value of {value} from config")
         return value
@@ -262,7 +270,9 @@ def extract_value_from_settings(
         else None
     )
     if value is not None:
-        logger.info(f"Parameter {full_param_name} has a value of {value} from default config")
+        logger.info(
+            f"Parameter {full_param_name} has a value of {value} from default config"
+        )
         return value
 
     value = get_first_value_for_matching_patterns(regex_config, full_param_name, logger)
@@ -270,16 +280,20 @@ def extract_value_from_settings(
         logger.info(f"Parameter {full_param_name} has a value of {value} from regex")
         return value
 
-    value = get_first_value_for_matching_patterns(default_regex, full_param_name, logger)
+    value = get_first_value_for_matching_patterns(
+        default_regex, full_param_name, logger
+    )
     if value is not None:
-        logger.info(f"Parameter {full_param_name} has a value of {value} from default regex")
+        logger.info(
+            f"Parameter {full_param_name} has a value of {value} from default regex"
+        )
         return value
     return None
 
 
-def needed_parameters_for_calling(
-    klass: type,
-    signature_name: Optional[str],
+def extract_values_for_param(
+    param: str,
+    value: inspect.Parameter,
     key_value_config_default: dict,
     key_value_config: dict,
     regex_config_default: Rules,
@@ -424,7 +438,9 @@ def needed_parameters_for_calling(
         if param_value == "None":
             final_parameter = ParameterNode(None, None, connected_params, creator)
         elif param_value is not None and not isinstance(param_value, dict):
-            final_parameter = ParameterNode(param_type, param_value, connected_params, creator)
+            final_parameter = ParameterNode(
+                param_type, param_value, connected_params, creator
+            )
             logger.info(f"Parameter {full_param_path} has a value of {param_value}")
         elif (
             need_params_for_signature(param_type, add_options_from_outside_packages)
