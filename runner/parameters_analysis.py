@@ -315,7 +315,9 @@ def extract_values_for_param(
         key_value_config_default,
         logger,
     )
-    annotation = extract_type_from_annotation(value.annotation)
+    annotation = (
+        extract_type_from_annotation(value.annotation) if value is not None else None
+    )
     param_type = config_param_type or annotation
     param_type = create_type_from_name(base_module, param_type)
 
@@ -484,9 +486,18 @@ def needed_parameters_for_calling(
     return parameters
 
 
-def find_missing_vertaxes(graph: ParameterGraph):
+def find_missing_vertaxes(
+    graph: ParameterGraph,
+    key_value_config_default: dict,
+    key_value_config: dict,
+    regex_config_default: Rules,
+    regex_config: Rules,
+    base_module: ModuleType,
+    add_options_from_outside_packages: bool,
+    logger: Logger,
+):
     connected_params_in_graph = deque(
-        [connected_param for node in graph for connected_param in node.connected_params]
+        [connected_param for node in graph.values() for connected_param in node.edges]
     )
     while connected_params_in_graph:
         edge = connected_params_in_graph.popleft()
@@ -508,7 +519,7 @@ def find_missing_vertaxes(graph: ParameterGraph):
                 regex_config,
                 base_module,
                 add_options_from_outside_packages,
-                initials,
+                logger=logger,
             )
             graph[edge] = ParameterNode(
                 param_type, param_value, connected_params, creator

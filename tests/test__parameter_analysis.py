@@ -14,11 +14,19 @@ from runner.parameters_analysis import (
     cli_parameters_for_calling,
     CliParam,
     Rules,
+    find_missing_vertaxes,
 )
 from tests import mock_module
 from tests.conftest import EXPECTED_GRAPH
 from tests.mock_module.a import MockA, MockB, MockD
-from tests.mock_module.sub_mock_module.b import MockC, MockE, MockG, MockF, BasicNet, MockH
+from tests.mock_module.sub_mock_module.b import (
+    MockC,
+    MockE,
+    MockG,
+    MockF,
+    BasicNet,
+    MockH,
+)
 from tests.mock_module.utils import func
 
 
@@ -753,3 +761,76 @@ def test__cli_parameters_for_calling__sanity(
 
     # Assert
     assert results == expected
+
+
+@pytest.mark.parametrize(
+    [
+        "graph",
+        "default_config",
+        "config",
+        "default_rules",
+        "rules",
+        "module",
+        "add_options_from_outside_packages",
+        "new_nodes",
+    ],
+    [
+        [
+            {
+                "c": ParameterNode(
+                    type=MockB, value=None, edges={"a.a": "a", "a.b": "b"}
+                )
+            },
+            {},
+            {},
+            Rules(),
+            Rules(),
+            mock_module,
+            True,
+            {
+                "a.a": ParameterNode(type=None, value=None, edges={}),
+                "a.b": ParameterNode(type=None, value=None, edges={}),
+            },
+        ],        [
+            {
+                "c": ParameterNode(
+                    type=MockB, value=None, edges={"a.a": "a", "a.b": "b"}
+                )
+            },
+            {"a.a": 12},
+            {"a": {"b__type": float}},
+            Rules(),
+            Rules(),
+            mock_module,
+            True,
+            {
+                "a.a": ParameterNode(type=int, value=12, edges={}),
+                "a.b": ParameterNode(type=float, value=None, edges={}),
+            },
+        ],
+    ],
+)
+def test__find_missing_vertaxes__sanity(
+    graph,
+    default_config,
+    config,
+    default_rules,
+    rules,
+    module,
+    add_options_from_outside_packages,
+    new_nodes,
+):
+    # Act
+    results = find_missing_vertaxes(
+        graph,
+        default_config,
+        config,
+        default_rules,
+        rules,
+        module,
+        add_options_from_outside_packages,
+        MagicMock(),
+    )
+
+    # Assert
+    assert results == new_nodes | graph

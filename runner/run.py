@@ -8,7 +8,10 @@ from runner.object_creation import (
     create_objects,
     only_creation_relevant_parameters_from_created,
 )
-from runner.parameters_analysis import needed_parameters_for_calling
+from runner.parameters_analysis import (
+    needed_parameters_for_calling,
+    find_missing_vertaxes,
+)
 from runner.parameters_analysis import Rules
 
 
@@ -68,6 +71,16 @@ def run(
         add_options_from_outside_packages,
         logger=logger,
     )
+    parameters_graph = find_missing_vertaxes(
+        parameters_graph,
+        default_config,
+        config,
+        default_rules,
+        rules,
+        module,
+        add_options_from_outside_packages,
+        logger=logger,
+    )
     if "logger" in parameters_graph and use_logger:
         parameters_graph["logger"].value = logger
     all_init_params = create_objects(parameters_graph)
@@ -77,6 +90,16 @@ def run(
     train_parameters_graph = needed_parameters_for_calling(
         algorithm_class,
         func_name,
+        default_config,
+        config,
+        default_rules,
+        rules,
+        module,
+        add_options_from_outside_packages,
+        logger=logger,
+    )
+    train_parameters_graph = find_missing_vertaxes(
+        train_parameters_graph,
         default_config,
         config,
         default_rules,
