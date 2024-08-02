@@ -288,93 +288,137 @@ def needed_parameters_for_calling(
     add_options_from_outside_packages: bool,
     initials: str = "",
     logger: Logger = None,
+):
+    param_type_name = create_type_parameter(param)
+
+    config_param_type = extract_value_from_settings(
+        param_type_name,
+        initials,
+        regex_config.type_rules,
+        regex_config_default.type_rules,
+        key_value_config,
+        key_value_config_default,
+        logger,
+    )
+    annotation = extract_type_from_annotation(value.annotation)
+    param_type = config_param_type or annotation
+    param_type = create_type_from_name(base_module, param_type)
+
+    creator_name = create_param_creator_name(param)
+    creator = extract_value_from_settings(
+        creator_name,
+        initials,
+        regex_config.creator_rules,
+        regex_config_default.creator_rules,
+        key_value_config,
+        key_value_config_default,
+        logger,
+    )
+    creator = create_type_from_name(base_module, creator, False) if creator else None
+    connected_params_name = create_param_connection_name(param)
+    connected_params = extract_value_from_settings(
+        connected_params_name,
+        initials,
+        regex_config.connected_params_rules,
+        regex_config_default.connected_params_rules,
+        key_value_config,
+        key_value_config_default,
+        logger,
+    )
+    if connected_params is None:
+        connected_params = {}
+    else:
+        connected_params = create_edges_mapping_from_connection_params(connected_params)
+
+    param_value = extract_value_from_settings(
+        param,
+        initials,
+        regex_config.value_rules,
+        regex_config_default.value_rules,
+        key_value_config,
+        key_value_config_default,
+        logger,
+    )
+    if param_value is None:
+        param_const_value = extract_value_from_settings(
+            create_const_param_name(param),
+            initials,
+            regex_config.value_rules,
+            regex_config_default.value_rules,
+            key_value_config,
+            key_value_config_default,
+            logger,
+        )
+        if param_const_value:
+            param_value = create_type_from_name(base_module, param_const_value, False)
+
+    # Create the node for the parameter
+    init_value_name = create_param_initialize_command_name(param)
+    init_value = extract_value_from_settings(
+        init_value_name,
+        initials,
+        regex_config.value_rules,
+        regex_config_default.value_rules,
+        key_value_config,
+        key_value_config_default,
+        logger,
+    )
+    param_mentioned_by_user = (
+        param_value or config_param_type or creator or connected_params or init_value
+    )
+    return (
+        f"{initials}{param}",
+        param_type,
+        param_value,
+        connected_params,
+        creator,
+        init_value,
+        param_mentioned_by_user,
+    )
+
+
+def needed_parameters_for_calling(
+    klass: type,
+    signature_name: Optional[str],
+    key_value_config_default: dict,
+    key_value_config: dict,
+    regex_config_default: Rules,
+    regex_config: Rules,
+    base_module: ModuleType,
+    add_options_from_outside_packages: bool,
+    initials: str = "",
+    logger: Logger = None,
 ) -> ParameterGraph:
     logger = logger or logging.getLogger(__name__)
     parameters = {}
-    for param, value in get_full_signature_parameters(klass, None, signature_name).items():
+    for param, value in get_full_signature_parameters(
+        klass, None, signature_name
+    ).items():
         if (
             value.kind == inspect.Parameter.VAR_POSITIONAL
             or value.kind == inspect.Parameter.VAR_KEYWORD
             or param == "self"
         ):
             continue
-        full_param_path = f"{initials}{param}"
-        param_type_name = create_type_parameter(param)
-
-        config_param_type = extract_value_from_settings(
-            param_type_name,
-            initials,
-            regex_config.type_rules,
-            regex_config_default.type_rules,
-            key_value_config,
-            key_value_config_default,
-            logger,
-        )
-        annotation = extract_type_from_annotation(value.annotation)
-        param_type = config_param_type or annotation
-        param_type = create_type_from_name(base_module, param_type)
-
-        creator_name = create_param_creator_name(full_param_path)
-        creator = extract_value_from_settings(
-            creator_name,
-            initials,
-            regex_config.creator_rules,
-            regex_config_default.creator_rules,
-            key_value_config,
-            key_value_config_default,
-            logger,
-        )
-        creator = create_type_from_name(base_module, creator, False) if creator else None
-        connected_params_name = create_param_connection_name(full_param_path)
-        connected_params = extract_value_from_settings(
-            connected_params_name,
-            initials,
-            regex_config.connected_params_rules,
-            regex_config_default.connected_params_rules,
-            key_value_config,
-            key_value_config_default,
-            logger,
-        )
-        if connected_params is None:
-            connected_params = {}
-        else:
-            connected_params = create_edges_mapping_from_connection_params(connected_params)
-
-        param_value = extract_value_from_settings(
+        (
+            full_param_path,
+            param_type,
+            param_value,
+            connected_params,
+            creator,
+            init_value,
+            param_mentioned_by_user,
+        ) = extract_values_for_param(
             param,
-            initials,
-            regex_config.value_rules,
-            regex_config_default.value_rules,
-            key_value_config,
+            value,
             key_value_config_default,
-            logger,
-        )
-        if param_value is None:
-            param_const_value = extract_value_from_settings(
-                create_const_param_name(param),
-                initials,
-                regex_config.value_rules,
-                regex_config_default.value_rules,
-                key_value_config,
-                key_value_config_default,
-                logger,
-            )
-            if param_const_value:
-                param_value = create_type_from_name(base_module, param_const_value, False)
-
-        # Create the node for the parameter
-        init_value_name = create_param_initialize_command_name(full_param_path)
-        init_value = extract_value_from_settings(
-            init_value_name,
-            initials,
-            regex_config.value_rules,
-            regex_config_default.value_rules,
             key_value_config,
-            key_value_config_default,
+            regex_config_default,
+            regex_config,
+            base_module,
+            add_options_from_outside_packages,
+            initials,
             logger,
-        )
-        param_mentioned_by_user = (
-            param_value or config_param_type or creator or connected_params or init_value
         )
 
         if param_value == "None":
