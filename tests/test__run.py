@@ -84,7 +84,7 @@ def test__run__sanity(
             ),
         ]
     )
-    create_objects_mock.assert_has_calls([call(graph1), call(graph2)])
+    create_objects_mock.assert_has_calls([call(graph1), call(graph2, alg_call_param)])
     find_class_by_name_mock.assert_has_calls([call(tests, class_name)])
     algorithm.func.assert_called_once_with(**call_param)
     class_mock_h.assert_called_once_with(**alg_call_param)
