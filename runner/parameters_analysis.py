@@ -77,8 +77,13 @@ def create_type_from_name(module: ModuleType, param_type: Any, only_class: bool 
     if isinstance(param_type, str):
         if "." in param_type:
             param_type_path = param_type.split(".")
-            class_name, module_name = param_type_path[-1], ".".join(param_type_path[:-1])
-            class_type = getattr(importlib.import_module(module_name), class_name)
+            class_name, module_name = param_type_path[-1], ".".join(
+                param_type_path[:-1]
+            )
+            try:
+                class_type = getattr(importlib.import_module(module_name), class_name)
+            except ModuleNotFoundError:
+                class_type = None
         else:
             class_type = find_class_by_name(module, param_type, only_class)
         if class_type is None:
