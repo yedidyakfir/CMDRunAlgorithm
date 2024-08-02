@@ -55,8 +55,9 @@ def topological_sort(
                 graph, neighbor , additional_nodes
             )
             if neighbor not in graph and neighbor in additional_nodes:
+                node_value = additional_nodes[neighbor]
                 graph[neighbor] = ParameterNode(
-                    value=additional_nodes[neighbor], type=None, edges={}
+                    value=node_value, type=type(node_value), edges={}
                 )
                 in_degree[neighbor] = 1
             else:
