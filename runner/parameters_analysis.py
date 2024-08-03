@@ -74,13 +74,18 @@ def create_edges_mapping_from_connection_params(connections: List[str]):
     }
 
 
+def get_path_and_name(path: str):
+    if "." not in path:
+        return "", path
+    param_type_path = path.split(".")
+    name, base_path = param_type_path[-1], ".".join(param_type_path[:-1])
+    return base_path, name
+
+
 def create_type_from_name(module: ModuleType, param_type: Any, only_class: bool = True):
     if isinstance(param_type, str):
         if "." in param_type:
-            param_type_path = param_type.split(".")
-            class_name, module_name = param_type_path[-1], ".".join(
-                param_type_path[:-1]
-            )
+            module_name, class_name = get_path_and_name(param_type)
             try:
                 class_type = getattr(importlib.import_module(module_name), class_name)
             except ModuleNotFoundError:
@@ -300,7 +305,6 @@ def extract_values_for_param(
     regex_config_default: Rules,
     regex_config: Rules,
     base_module: ModuleType,
-    add_options_from_outside_packages: bool,
     initials: str = "",
     logger: Logger = None,
 ):
@@ -433,7 +437,6 @@ def needed_parameters_for_calling(
             regex_config_default,
             regex_config,
             base_module,
-            add_options_from_outside_packages,
             initials,
             logger,
         )
@@ -465,7 +468,7 @@ def needed_parameters_for_calling(
             final_parameter = ParameterNode(
                 param_type,
                 None,
-                create_edges_mapping_from_connection_params(klass_parameters.keys())
+                create_edges_mapping_from_connection_params(list(klass_parameters.keys()))
                 | connected_params,
                 creator,
             )
@@ -493,15 +496,16 @@ def find_missing_vertaxes(
     regex_config_default: Rules,
     regex_config: Rules,
     base_module: ModuleType,
-    add_options_from_outside_packages: bool,
     logger: Logger,
 ):
+    original_graph_len = len(graph)
     connected_params_in_graph = deque(
         [connected_param for node in graph.values() for connected_param in node.edges]
     )
     while connected_params_in_graph:
-        edge = connected_params_in_graph.popleft()
-        if edge not in graph:
+        param_source_path = connected_params_in_graph.popleft()
+        if param_source_path not in graph:
+            initial, param_name = get_path_and_name(param_source_path)
             (
                 full_param_path,
                 param_type,
@@ -511,18 +515,29 @@ def find_missing_vertaxes(
                 init_value,
                 param_mentioned_by_user,
             ) = extract_values_for_param(
-                edge,
+                param_name,
                 None,
                 location_in_dict(key_value_config_default, initial),
                 location_in_dict(key_value_config, initial),
                 regex_config_default,
                 regex_config,
                 base_module,
-                add_options_from_outside_packages,
+                initial,
                 logger=logger,
             )
-            graph[edge] = ParameterNode(
+            graph[param_source_path] = ParameterNode(
                 param_type, param_value, connected_params, creator
             )
             connected_params_in_graph.extend(connected_params)
+
+    if len(graph) != original_graph_len:
+        return find_missing_vertaxes(
+            graph,
+            key_value_config_default,
+            key_value_config,
+            regex_config_default,
+            regex_config,
+            base_module,
+            logger,
+        )
     return graph

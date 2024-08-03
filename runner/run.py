@@ -78,7 +78,6 @@ def run(
         default_rules,
         rules,
         module,
-        add_options_from_outside_packages,
         logger=logger,
     )
     if "logger" in parameters_graph and use_logger:
@@ -105,7 +104,6 @@ def run(
         default_rules,
         rules,
         module,
-        add_options_from_outside_packages,
         logger=logger,
     )
     run_parameters = create_objects(train_parameters_graph, init_params)

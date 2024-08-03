@@ -771,7 +771,6 @@ def test__cli_parameters_for_calling__sanity(
         "default_rules",
         "rules",
         "module",
-        "add_options_from_outside_packages",
         "new_nodes",
     ],
     [
@@ -786,12 +785,12 @@ def test__cli_parameters_for_calling__sanity(
             Rules(),
             Rules(),
             mock_module,
-            True,
             {
                 "a.a": ParameterNode(type=None, value=None, edges={}),
                 "a.b": ParameterNode(type=None, value=None, edges={}),
             },
-        ],        [
+        ],
+        [
             {
                 "c": ParameterNode(
                     type=MockB, value=None, edges={"a.a": "a", "a.b": "b"}
@@ -802,10 +801,27 @@ def test__cli_parameters_for_calling__sanity(
             Rules(),
             Rules(),
             mock_module,
-            True,
             {
                 "a.a": ParameterNode(type=int, value=12, edges={}),
                 "a.b": ParameterNode(type=float, value=None, edges={}),
+            },
+        ],
+        [
+            {
+                "c": ParameterNode(
+                    type=MockB, value=None, edges={"a.a": "a", "a.b": "b"}
+                )
+            },
+            {"a.a": 12},
+            {"a": {"b__type": MockB, "b__connected_params": {"e": "a", "d": "a"}}},
+            Rules(),
+            Rules(),
+            mock_module,
+            {
+                "a.a": ParameterNode(type=int, value=12, edges={}),
+                "a.b": ParameterNode(type=MockB, value=None, edges={}),
+                "e": ParameterNode(type=float, value=None, edges={}),
+                "d": ParameterNode(type=float, value=None, edges={}),
             },
         ],
     ],
@@ -817,7 +833,6 @@ def test__find_missing_vertaxes__sanity(
     default_rules,
     rules,
     module,
-    add_options_from_outside_packages,
     new_nodes,
 ):
     # Act
@@ -828,7 +843,6 @@ def test__find_missing_vertaxes__sanity(
         default_rules,
         rules,
         module,
-        add_options_from_outside_packages,
         MagicMock(),
     )
 
