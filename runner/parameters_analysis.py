@@ -12,7 +12,7 @@ from typing import Dict, Pattern, Any, Optional, List
 
 from runner.dynamic_loading import find_class_by_name, find_subclasses
 from runner.object_creation import ParameterGraph, ParameterNode
-from runner.utils.python import PRIMITIVES, notation_belong_to_typing
+from runner.utils.python import PRIMITIVES, notation_belong_to_typing, location_in_dict
 from runner.utils.regex import get_first_value_for_matching_patterns
 
 
@@ -513,8 +513,8 @@ def find_missing_vertaxes(
             ) = extract_values_for_param(
                 edge,
                 None,
-                key_value_config_default,
-                key_value_config,
+                location_in_dict(key_value_config_default, initial),
+                location_in_dict(key_value_config, initial),
                 regex_config_default,
                 regex_config,
                 base_module,
